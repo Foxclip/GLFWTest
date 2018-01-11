@@ -10,7 +10,7 @@ GLFWwindow* window;
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-int shaderProgramOrange, shaderProgramYellow;
+int shaderProgramOrange, shaderProgramYellow, shaderProgramRed;
 unsigned int VAO_1, VAO_2, VBO_1, VBO_2, EBO;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -50,8 +50,9 @@ char* readFile(std::string filename) {
     return new_str;
 }
 
-int compileShader(char* source, GLenum type, char* name) {
+int compileShader(std::string filename, GLenum type, char* name) {
     int shader = glCreateShader(type);
+    char* source = readFile(filename);
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
     int success;
@@ -86,16 +87,15 @@ int createShaderProgram(int vertexShader, int fragmentShader, char* name) {
 
 void compileShaders() {
 
-    char* vertexShaderSource = readFile("simple.vert");
-    char* orangeFragmentShaderSource = readFile("orange.frag");
-    char* yellowFragmentShaderSource = readFile("yellow.frag");
-
-    int vertexShader = compileShader(vertexShaderSource, GL_VERTEX_SHADER, "Simple");
-    int orangeFragmentShader = compileShader(orangeFragmentShaderSource, GL_FRAGMENT_SHADER, "Orange");
-    int yellowFragmentShader = compileShader(yellowFragmentShaderSource, GL_FRAGMENT_SHADER, "Yellow");
+    int vertexShader = compileShader("simple.vert", GL_VERTEX_SHADER, "Simple");
+    int orangeFragmentShader = compileShader("orange.frag", GL_FRAGMENT_SHADER, "Orange");
+    int yellowFragmentShader = compileShader("yellow.frag", GL_FRAGMENT_SHADER, "Yellow");
+    int redVertexShader = compileShader("red.vert", GL_VERTEX_SHADER, "Red");
+    int forwardFragmentShader = compileShader("forward.frag", GL_FRAGMENT_SHADER, "Forward");
 
     shaderProgramOrange = createShaderProgram(vertexShader, orangeFragmentShader, "Orange");
     shaderProgramYellow = createShaderProgram(vertexShader, yellowFragmentShader, "Yellow");
+    shaderProgramRed = createShaderProgram(redVertexShader, forwardFragmentShader, "Red");
 
     glDeleteShader(vertexShader);
     glDeleteShader(orangeFragmentShader);
@@ -143,7 +143,7 @@ void initTriangles() {
 
 void drawTriangles() {
 
-    glUseProgram(shaderProgramOrange);
+    glUseProgram(shaderProgramRed);
     glBindVertexArray(VAO_1);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
