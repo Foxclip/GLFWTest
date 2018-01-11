@@ -1,90 +1,106 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
-
+GLFWwindow* window;
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 int shaderProgramOrange, shaderProgramYellow;
 unsigned int VAO_1, VAO_2, VBO_1, VBO_2, EBO;
 
-const char* vertexShaderSource = "                       \n\
-    #version 330 core                                    \n\
-    layout (location = 0) in vec3 aPos;                  \n\
-    void main() {                                        \n\
-        gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0); \n\
-    }";
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+}
 
-const char* orangeFragmentShaderSource = "               \n\
-    #version 330 core                                    \n\
-    out vec4 FragColor;                                  \n\
-    void main() {                                        \n\
-        FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);        \n\
-    }";
+void initGLFW() {
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-const char* yellowFragmentShaderSource = "               \n\
-    #version 330 core                                    \n\
-    out vec4 FragColor;                                  \n\
-    void main() {                                        \n\
-        FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);        \n\
-    }";
+    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Some window", NULL, NULL);
+    if(window == NULL) {
+        std::cout << "Failed to create GLFW window" << "\n";
+        glfwTerminate();
+        exit(-1);
+    }
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cout << "Failed to initialize GLAD" << "\n";
+        exit(-1);
+    }
+}
 
-void compileShaders() {
-    int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
+char* readFile(std::string filename) {
+    std::fstream file(filename);
+    std::string str;
+    std::string contents;
+    while(std::getline(file, str)) {
+        contents += str;
+        contents.push_back('\n');
+    }
+    char* new_str = (char*)malloc(sizeof(char)*strlen(contents.c_str()));
+    strcpy(new_str, contents.c_str());
+    return new_str;
+}
+
+int compileShader(char* source, GLenum type, char* name) {
+    int shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, NULL);
+    glCompileShader(shader);
     int success;
     char infolog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if(!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infolog);
-        std::cout << "Vertex shader compilation failed\n" << infolog << "\n";
+        glGetShaderInfoLog(shader, 512, NULL, infolog);
+        char* typestr;
+        switch(type) {
+            case GL_VERTEX_SHADER:   typestr = "vertex";   break;
+            case GL_FRAGMENT_SHADER: typestr = "fragment"; break;
+        }
+        std::cout << name << " " << typestr << " shader compilation failed\n" << infolog << "\n";
     }
+    return shader;
+}
 
-    int orangeFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(orangeFragmentShader, 1, &orangeFragmentShaderSource, NULL);
-    glCompileShader(orangeFragmentShader);
-    glGetShaderiv(orangeFragmentShader, GL_COMPILE_STATUS, &success);
+int createShaderProgram(int vertexShader, int fragmentShader, char* name) {
+    int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    int success;
+    char infolog[512];
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if(!success) {
-        glGetShaderInfoLog(orangeFragmentShader, 512, NULL, infolog);
-        std::cout << "Orange fragment shader compilation failed\n" << infolog << "\n";
+        glGetShaderInfoLog(shaderProgram, 512, NULL, infolog);
+        std::cout << name << " linking failed\n" << infolog << "\n";
     }
+    return shaderProgram;
+}
 
-    int yellowFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(yellowFragmentShader, 1, &yellowFragmentShaderSource, NULL);
-    glCompileShader(yellowFragmentShader);
-    glGetShaderiv(yellowFragmentShader, GL_COMPILE_STATUS, &success);
-    if(!success) {
-        glGetShaderInfoLog(yellowFragmentShader, 512, NULL, infolog);
-        std::cout << "Yellow fragment shader compilation failed\n" << infolog << "\n";
-    }
+void compileShaders() {
 
-    shaderProgramOrange = glCreateProgram();
-    glAttachShader(shaderProgramOrange, vertexShader);
-    glAttachShader(shaderProgramOrange, orangeFragmentShader);
-    glLinkProgram(shaderProgramOrange);
-    glGetProgramiv(shaderProgramOrange, GL_LINK_STATUS, &success);
-    if(!success) {
-        glGetShaderInfoLog(shaderProgramOrange, 512, NULL, infolog);
-        std::cout << "Orange linking failed\n" << infolog << "\n";
-    }
+    char* vertexShaderSource = readFile("simple.vert");
+    char* orangeFragmentShaderSource = readFile("orange.frag");
+    char* yellowFragmentShaderSource = readFile("yellow.frag");
 
-    shaderProgramYellow = glCreateProgram();
-    glAttachShader(shaderProgramYellow, vertexShader);
-    glAttachShader(shaderProgramYellow, yellowFragmentShader);
-    glLinkProgram(shaderProgramYellow);
-    glGetProgramiv(shaderProgramYellow, GL_LINK_STATUS, &success);
-    if(!success) {
-        glGetShaderInfoLog(shaderProgramYellow, 512, NULL, infolog);
-        std::cout << "Yellow linking failed\n" << infolog << "\n";
-    }
+    int vertexShader = compileShader(vertexShaderSource, GL_VERTEX_SHADER, "Simple");
+    int orangeFragmentShader = compileShader(orangeFragmentShaderSource, GL_FRAGMENT_SHADER, "Orange");
+    int yellowFragmentShader = compileShader(yellowFragmentShaderSource, GL_FRAGMENT_SHADER, "Yellow");
+
+    shaderProgramOrange = createShaderProgram(vertexShader, orangeFragmentShader, "Orange");
+    shaderProgramYellow = createShaderProgram(vertexShader, yellowFragmentShader, "Yellow");
 
     glDeleteShader(vertexShader);
     glDeleteShader(orangeFragmentShader);
     glDeleteShader(yellowFragmentShader);
+
 }
 
 void initTriangles() {
@@ -137,53 +153,35 @@ void drawTriangles() {
 
 }
 
-int main() {
-
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Some window", NULL, NULL);
-    if(window == NULL) {
-        std::cout << "Failed to create GLFW window" << "\n";
-        glfwTerminate();
-        return -1;
+void processInput(GLFWwindow* window) {
+    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, true);
     }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << "\n";
-        return -1;
-    }
-   
-    compileShaders();
-    initTriangles();
-    //initRectangle();
+}
 
+void mainLoop() {
     while(!glfwWindowShouldClose(window)) {
         processInput(window);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         drawTriangles();
-        //drawRectangle();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+}
+
+int main() {
+
+    initGLFW();
+
+    compileShaders();
+    initTriangles();
+
+    mainLoop();
 
     glfwTerminate();
     return 0;
 
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
-
-void processInput(GLFWwindow* window) {
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
-    }
 }
