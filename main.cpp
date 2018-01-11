@@ -59,12 +59,18 @@ void compileShaders() {
     glDeleteShader(fragmentShader);
 }
 
-void initTriangle() {
+void initTriangles() {
 
     float vertices[] = {
+
+        -1.0f,  0.5f, 0.0f,
+         0.0f,  0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.0f,  0.5f, 0.0f
+
+         0.5f,  0.5f, 0.0f,
+         1.0f, -0.5f, 0.0f,
+         0.0f, -0.5f, 0.0f
+
     };
 
     unsigned int VBO;
@@ -81,10 +87,10 @@ void initTriangle() {
     glBindVertexArray(0);
 }
 
-void drawTriangle() {
+void drawTriangles() {
     glUseProgram(shaderProgram);
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void initRectangle() {
@@ -145,16 +151,16 @@ int main() {
     }
    
     compileShaders();
-    //initTriangle();
-    initRectangle();
+    initTriangles();
+    //initRectangle();
 
     while(!glfwWindowShouldClose(window)) {
         processInput(window);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        //drawTriangle();
-        drawRectangle();
+        drawTriangles();
+        //drawRectangle();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
