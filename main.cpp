@@ -11,7 +11,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 int shaderProgramOrange, shaderProgramYellow, shaderProgramRed, shaderProgramAnimated;
-unsigned int VAO_1, VAO_2, VBO_1, VBO_2, EBO;
+unsigned int VAO, VBO;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -110,35 +110,19 @@ void compileShaders() {
 
 void initTriangles() {
 
-    float vertices1[] = {
-        -1.0f,  0.5f, 0.0f,
+    float vertices[] = {
          0.0f,  0.5f, 0.0f,
+         0.5f, -0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
     };
 
-    float vertices2[] = {
-         0.5f,  0.5f, 0.0f,
-         1.0f, -0.5f, 0.0f,
-         0.0f, -0.5f, 0.0f
-    };
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
 
-    glGenVertexArrays(1, &VAO_1);
-    glGenBuffers(1, &VBO_1);
+    glBindVertexArray(VAO);
 
-    glBindVertexArray(VAO_1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_1);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glGenVertexArrays(1, &VAO_2);
-    glGenBuffers(1, &VBO_2);
-
-    glBindVertexArray(VAO_2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_2);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -146,16 +130,10 @@ void initTriangles() {
     glBindVertexArray(0);
 }
 
-void drawTriangles() {
-
-    //glUseProgram(shaderProgramRed);
-    glBindVertexArray(VAO_1);
+void drawTriangle() {
+    glUseProgram(shaderProgramAnimated);
+    glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glUseProgram(shaderProgramYellow);
-    glBindVertexArray(VAO_2);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
 }
 
 void processInput(GLFWwindow* window) {
@@ -179,7 +157,7 @@ void mainLoop() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         changeColor();
-        drawTriangles();
+        drawTriangle();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
