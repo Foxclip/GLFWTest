@@ -20,6 +20,20 @@ unsigned int boxTexture, awTexture;
 unsigned int VAO, VBO, EBO;
 float mixFactor = 0.5f;
 
+
+glm::vec3 cubePositions[] = {
+    glm::vec3( 0.0f,  0.0f,   0.0f),
+    glm::vec3( 2.0f,  5.0f, -15.0f),
+    glm::vec3(-1.5f, -2.2f,  -2.5f),
+    glm::vec3(-3.8f, -2.0f, -12.3f),
+    glm::vec3( 2.4f, -0.4f,  -3.5f),
+    glm::vec3(-1.7f,  3.0f,  -7.5f),
+    glm::vec3( 1.3f, -2.0f,  -2.5f),
+    glm::vec3( 1.5f,  2.0f,  -2.5f),
+    glm::vec3( 1.5f,  0.2f,  -1.5f),
+    glm::vec3(-1.3f,  1.0f,  -1.5f),
+};
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
@@ -42,6 +56,9 @@ void initGLFW() {
         std::cout << "Failed to initialize GLAD" << "\n";
         exit(-1);
     }
+
+    glEnable(GL_DEPTH_TEST);
+
 }
 
 void initShaders() {
@@ -74,7 +91,7 @@ void initTextures() {
     awTexture = loadTexture("awesomeface.png");
 }
 
-void initRectangle() {
+void initCubes() {
 
     float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -146,10 +163,9 @@ void initRectangle() {
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH/SCR_HEIGHT, 0.1f, 100.0f);
 
-    textureShader->setMatrix("model", glm::value_ptr(model));
-    textureShader->setMatrix("view", glm::value_ptr(view));
-    textureShader->setMatrix("projection", glm::value_ptr(projection));
-
+    textureShader->setMatrix("model", model);
+    textureShader->setMatrix("view", view);
+    textureShader->setMatrix("projection", projection);
 
 }
 
@@ -170,10 +186,10 @@ void processInput(GLFWwindow* window) {
 void processPhysics() {
     glm::mat4 model;
     model = glm::rotate(model, (float)glfwGetTime()*glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-    textureShader->setMatrix("model", glm::value_ptr(model));
+    textureShader->setMatrix("model", model);
 }
 
-void drawCube() {
+void drawCubes() {
 
     textureShader->use();
 
@@ -183,14 +199,21 @@ void drawCube() {
     glBindTexture(GL_TEXTURE_2D, awTexture);
 
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    for(int i = 0; i < 10; i++) {
+        glm::mat4 model;
+        model = glm::translate(model, cubePositions[i]);
+        float angle = 20.0f*i;
+        model = glm::rotate(model, (float)glfwGetTime()*glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+        textureShader->setMatrix("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
     glBindVertexArray(0);
 }
 
 void render() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    drawCube();
+    drawCubes();
     glfwSwapBuffers(window);
     glfwPollEvents();
 }
@@ -208,7 +231,7 @@ int main() {
     initGLFW();
     initShaders();
     initTextures();
-    initRectangle();
+    initCubes();
 
     mainLoop();
     glfwTerminate();
