@@ -79,8 +79,15 @@ void processInput(GLFWwindow* window) {
 }
 
 void mainLoop() {
+
+    float offset = 0.0f;
+
     while(!glfwWindowShouldClose(window)) {
+
         processInput(window);
+
+        RGBShader->setFloat("offset", offset);
+        offset += 0.001f;
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -88,6 +95,7 @@ void mainLoop() {
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
     }
 }
 

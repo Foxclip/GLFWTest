@@ -10,11 +10,14 @@
 class Shader {
 public:
     Shader(std::string vertexPath, std::string fragmentPath, char* name);
-    unsigned int shaderProgram;
     void use();
     void setBool(const std::string &name, bool value) const;
-    void setInt(const std::string &name, bool value) const;
-    void setFloat(const std::string &name, bool value) const;
+    void setInt(const std::string &name, int value) const;
+    void setFloat(const std::string &name, float value) const;
+
+private:
+    unsigned int shaderProgram;
+
 };
 
 char* readFile(std::string filename) {
@@ -77,10 +80,10 @@ inline void Shader::setBool(const std::string & name, bool value) const {
     glUniform1i(glGetUniformLocation(shaderProgram, name.c_str()), (int)value);
 }
 
-inline void Shader::setInt(const std::string & name, bool value) const {
+inline void Shader::setInt(const std::string & name, int value) const {
     glUniform1i(glGetUniformLocation(shaderProgram, name.c_str()), value);
 }
 
-inline void Shader::setFloat(const std::string & name, bool value) const {
+inline void Shader::setFloat(const std::string & name, float value) const {
     glUniform1f(glGetUniformLocation(shaderProgram, name.c_str()), value);
 }
