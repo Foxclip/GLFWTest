@@ -5,12 +5,13 @@
 #include <string>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "shader.h"
 
 GLFWwindow* window;
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-int shaderProgramOrange, shaderProgramYellow, shaderProgramRed, shaderProgramAnimated, shaderProgramRGB;
+Shader* RGBShader;
 unsigned int VAO, VBO;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -37,77 +38,8 @@ void initGLFW() {
     }
 }
 
-char* readFile(std::string filename) {
-    std::fstream file(filename);
-    std::string str;
-    std::string contents;
-    while(std::getline(file, str)) {
-        contents += str;
-        contents.push_back('\n');
-    }
-    char* new_str = (char*)malloc(sizeof(char)*strlen(contents.c_str()));
-    strcpy(new_str, contents.c_str());
-    return new_str;
-}
-
-int compileShader(std::string filename, GLenum type, char* name) {
-    int shader = glCreateShader(type);
-    char* source = readFile(filename);
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
-    int success;
-    char infolog[512];
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if(!success) {
-        glGetShaderInfoLog(shader, 512, NULL, infolog);
-        char* typestr;
-        switch(type) {
-            case GL_VERTEX_SHADER:   typestr = "vertex";   break;
-            case GL_FRAGMENT_SHADER: typestr = "fragment"; break;
-        }
-        std::cout << name << " " << typestr << " shader compilation failed\n" << infolog << "\n";
-    }
-    return shader;
-}
-
-int createShaderProgram(int vertexShader, int fragmentShader, char* name) {
-    int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    int success;
-    char infolog[512];
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if(!success) {
-        glGetShaderInfoLog(shaderProgram, 512, NULL, infolog);
-        std::cout << name << " linking failed\n" << infolog << "\n";
-    }
-    return shaderProgram;
-}
-
-void compileShaders() {
-
-    int vertexShader = compileShader("simple.vert", GL_VERTEX_SHADER, "Simple");
-    int orangeFragmentShader = compileShader("orange.frag", GL_FRAGMENT_SHADER, "Orange");
-    int yellowFragmentShader = compileShader("yellow.frag", GL_FRAGMENT_SHADER, "Yellow");
-    int redVertexShader = compileShader("red.vert", GL_VERTEX_SHADER, "Red");
-    int forwardFragmentShader = compileShader("forward.frag", GL_FRAGMENT_SHADER, "Forward");
-    int uniformFragmentShader = compileShader("uniform.frag", GL_FRAGMENT_SHADER, "Uniform");
-    int rgbVertShader = compileShader("rgb.vert", GL_VERTEX_SHADER, "RGB");
-
-    shaderProgramOrange = createShaderProgram(vertexShader, orangeFragmentShader, "Orange");
-    shaderProgramYellow = createShaderProgram(vertexShader, yellowFragmentShader, "Yellow");
-    shaderProgramRed = createShaderProgram(redVertexShader, forwardFragmentShader, "Red");
-    shaderProgramAnimated = createShaderProgram(vertexShader, uniformFragmentShader, "Animated");
-    shaderProgramRGB = createShaderProgram(rgbVertShader, forwardFragmentShader, "RGB");
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(orangeFragmentShader);
-    glDeleteShader(yellowFragmentShader);
-    glDeleteShader(redVertexShader);
-    glDeleteShader(forwardFragmentShader);
-    glDeleteShader(uniformFragmentShader);
-
+void initShaders() {
+    RGBShader = new Shader("rgb.vert", "forward.frag", "RGB");
 }
 
 void initTriangle() {
@@ -135,7 +67,7 @@ void initTriangle() {
 }
 
 void drawTriangle() {
-    glUseProgram(shaderProgramRGB);
+    RGBShader->use();
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -146,21 +78,12 @@ void processInput(GLFWwindow* window) {
     }
 }
 
-void changeColor() {
-    float timeValue = glfwGetTime();
-    float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-    int vertexColorLocation = glGetUniformLocation(shaderProgramAnimated, "ourColor");
-    glUseProgram(shaderProgramAnimated);
-    glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-}
-
 void mainLoop() {
     while(!glfwWindowShouldClose(window)) {
         processInput(window);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        changeColor();
         drawTriangle();
 
         glfwSwapBuffers(window);
@@ -172,7 +95,7 @@ int main() {
 
     initGLFW();
 
-    compileShaders();
+    initShaders();
     initTriangle();
 
     mainLoop();
