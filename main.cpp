@@ -10,7 +10,7 @@ GLFWwindow* window;
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-int shaderProgramOrange, shaderProgramYellow, shaderProgramRed, shaderProgramAnimated;
+int shaderProgramOrange, shaderProgramYellow, shaderProgramRed, shaderProgramAnimated, shaderProgramRGB;
 unsigned int VAO, VBO;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -93,11 +93,13 @@ void compileShaders() {
     int redVertexShader = compileShader("red.vert", GL_VERTEX_SHADER, "Red");
     int forwardFragmentShader = compileShader("forward.frag", GL_FRAGMENT_SHADER, "Forward");
     int uniformFragmentShader = compileShader("uniform.frag", GL_FRAGMENT_SHADER, "Uniform");
+    int rgbVertShader = compileShader("rgb.vert", GL_VERTEX_SHADER, "RGB");
 
     shaderProgramOrange = createShaderProgram(vertexShader, orangeFragmentShader, "Orange");
     shaderProgramYellow = createShaderProgram(vertexShader, yellowFragmentShader, "Yellow");
     shaderProgramRed = createShaderProgram(redVertexShader, forwardFragmentShader, "Red");
     shaderProgramAnimated = createShaderProgram(vertexShader, uniformFragmentShader, "Animated");
+    shaderProgramRGB = createShaderProgram(rgbVertShader, forwardFragmentShader, "RGB");
 
     glDeleteShader(vertexShader);
     glDeleteShader(orangeFragmentShader);
@@ -108,12 +110,12 @@ void compileShaders() {
 
 }
 
-void initTriangles() {
+void initTriangle() {
 
     float vertices[] = {
-         0.0f,  0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
+         0.0f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,
+         0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f
     };
 
     glGenVertexArrays(1, &VAO);
@@ -123,15 +125,17 @@ void initTriangles() {
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
 
 void drawTriangle() {
-    glUseProgram(shaderProgramAnimated);
+    glUseProgram(shaderProgramRGB);
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -169,7 +173,7 @@ int main() {
     initGLFW();
 
     compileShaders();
-    initTriangles();
+    initTriangle();
 
     mainLoop();
 
