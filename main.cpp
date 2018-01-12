@@ -113,10 +113,16 @@ void initRectangle() {
     textureShader->setInt("texture1", 0);
     textureShader->setInt("texture2", 1);
 
-    glm::mat4 trans;
-    trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
-    trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
-    textureShader->setMatrix("transform", glm::value_ptr(trans));
+    glm::mat4 model;
+    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 view;
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH/SCR_HEIGHT, 0.1f, 100.0f);
+    textureShader->setMatrix("model", glm::value_ptr(model));
+    textureShader->setMatrix("view", glm::value_ptr(view));
+    textureShader->setMatrix("projection", glm::value_ptr(projection));
+
 
 }
 
@@ -135,10 +141,10 @@ void processInput(GLFWwindow* window) {
 }
 
 void processPhysics() {
-    glm::mat4 trans;
-    trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-    trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-    textureShader->setMatrix("transform", glm::value_ptr(trans));
+    //glm::mat4 trans;
+    //trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+    //trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+    //textureShader->setMatrix("transform", glm::value_ptr(trans));
 }
 
 void drawRectangle() {
