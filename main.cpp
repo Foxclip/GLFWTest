@@ -10,7 +10,7 @@ GLFWwindow* window;
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-int shaderProgramOrange, shaderProgramYellow, shaderProgramRed;
+int shaderProgramOrange, shaderProgramYellow, shaderProgramRed, shaderProgramAnimated;
 unsigned int VAO_1, VAO_2, VBO_1, VBO_2, EBO;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -92,14 +92,19 @@ void compileShaders() {
     int yellowFragmentShader = compileShader("yellow.frag", GL_FRAGMENT_SHADER, "Yellow");
     int redVertexShader = compileShader("red.vert", GL_VERTEX_SHADER, "Red");
     int forwardFragmentShader = compileShader("forward.frag", GL_FRAGMENT_SHADER, "Forward");
+    int uniformFragmentShader = compileShader("uniform.frag", GL_FRAGMENT_SHADER, "Uniform");
 
     shaderProgramOrange = createShaderProgram(vertexShader, orangeFragmentShader, "Orange");
     shaderProgramYellow = createShaderProgram(vertexShader, yellowFragmentShader, "Yellow");
     shaderProgramRed = createShaderProgram(redVertexShader, forwardFragmentShader, "Red");
+    shaderProgramAnimated = createShaderProgram(vertexShader, uniformFragmentShader, "Animated");
 
     glDeleteShader(vertexShader);
     glDeleteShader(orangeFragmentShader);
     glDeleteShader(yellowFragmentShader);
+    glDeleteShader(redVertexShader);
+    glDeleteShader(forwardFragmentShader);
+    glDeleteShader(uniformFragmentShader);
 
 }
 
@@ -143,7 +148,7 @@ void initTriangles() {
 
 void drawTriangles() {
 
-    glUseProgram(shaderProgramRed);
+    //glUseProgram(shaderProgramRed);
     glBindVertexArray(VAO_1);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -159,12 +164,21 @@ void processInput(GLFWwindow* window) {
     }
 }
 
+void changeColor() {
+    float timeValue = glfwGetTime();
+    float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+    int vertexColorLocation = glGetUniformLocation(shaderProgramAnimated, "ourColor");
+    glUseProgram(shaderProgramAnimated);
+    glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+}
+
 void mainLoop() {
     while(!glfwWindowShouldClose(window)) {
         processInput(window);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+        changeColor();
         drawTriangles();
 
         glfwSwapBuffers(window);
