@@ -5,6 +5,9 @@
 #include <string>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include "shader.h"
 #include "stb_image.h"
 
@@ -67,10 +70,8 @@ unsigned int loadTexture(char* filename, GLenum edge = GL_REPEAT, GLenum interpo
 }
 
 void initTextures() {
-
     boxTexture = loadTexture("container.jpg", GL_REPEAT, GL_NEAREST);
     awTexture = loadTexture("awesomeface.png", GL_REPEAT, GL_NEAREST);
-
 }
 
 void initRectangle() {
@@ -112,20 +113,11 @@ void initRectangle() {
     textureShader->setInt("texture1", 0);
     textureShader->setInt("texture2", 1);
 
-}
+    glm::mat4 trans;
+    trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
+    trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+    textureShader->setMatrix("transform", glm::value_ptr(trans));
 
-void drawRectangle() {
-
-    textureShader->use();
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, boxTexture);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, awTexture);
-
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
 }
 
 void processInput(GLFWwindow* window) {
@@ -142,33 +134,53 @@ void processInput(GLFWwindow* window) {
     }
 }
 
+void processPhysics() {
+    glm::mat4 trans;
+    trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+    trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+    textureShader->setMatrix("transform", glm::value_ptr(trans));
+}
+
+void drawRectangle() {
+
+    textureShader->use();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, boxTexture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, awTexture);
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
+
+void render() {
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    drawRectangle();
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+}
+
 void mainLoop() {
-
     while(!glfwWindowShouldClose(window)) {
-
         processInput(window);
-
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        drawRectangle();
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-
+        processPhysics();
+        render();
     }
 }
 
 int main() {
 
     initGLFW();
-
     initShaders();
     initTextures();
     initRectangle();
 
     mainLoop();
-
     glfwTerminate();
+
     return 0;
 
 }

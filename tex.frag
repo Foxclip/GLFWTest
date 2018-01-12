@@ -11,5 +11,5 @@ uniform sampler2D texture2;
 uniform float mixFactor = 0.5;
 
 void main() {
-	FragColor = mix(texture(texture1, TexCoord1), texture(texture2, vec2(-TexCoord2.x, TexCoord2.y)), texture(texture2, vec2(-TexCoord2.x, TexCoord2.y)).a*mixFactor);
+	FragColor = mix(texture(texture1, TexCoord1), texture(texture2, TexCoord2), texture(texture2, TexCoord2).a*mixFactor);
 }

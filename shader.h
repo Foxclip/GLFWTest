@@ -14,6 +14,7 @@ public:
     void setBool(const std::string &name, bool value) const;
     void setInt(const std::string &name, int value) const;
     void setFloat(const std::string &name, float value) const;
+    void setMatrix(const std::string &name, GLfloat* value) const;
 
 private:
     unsigned int shaderProgram;
@@ -86,4 +87,8 @@ inline void Shader::setInt(const std::string & name, int value) const {
 
 inline void Shader::setFloat(const std::string & name, float value) const {
     glUniform1f(glGetUniformLocation(shaderProgram, name.c_str()), value);
+}
+
+inline void Shader::setMatrix(const std::string & name, GLfloat * value) const {
+    glad_glUniformMatrix4fv(glGetUniformLocation(shaderProgram, name.c_str()), 1, GL_FALSE, value);
 }
