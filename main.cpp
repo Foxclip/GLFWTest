@@ -15,6 +15,7 @@ const unsigned int SCR_HEIGHT = 600;
 Shader* textureShader;
 unsigned int boxTexture, awTexture;
 unsigned int VAO, VBO, EBO;
+float mixFactor = 0.5f;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -44,17 +45,17 @@ void initShaders() {
     textureShader = new Shader("tex.vert", "tex.frag", "Texture");
 }
 
-unsigned int loadTexture(char* filename) {
+unsigned int loadTexture(char* filename, GLenum edge = GL_REPEAT, GLenum interpolation = GL_LINEAR) {
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(filename, &width, &height, &nrChannels, STBI_rgb_alpha);
     unsigned int texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, edge);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, edge);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolation);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolation);
     if(data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -67,8 +68,8 @@ unsigned int loadTexture(char* filename) {
 
 void initTextures() {
 
-    boxTexture = loadTexture("container.jpg");
-    awTexture = loadTexture("awesomeface.png");
+    boxTexture = loadTexture("container.jpg", GL_REPEAT, GL_NEAREST);
+    awTexture = loadTexture("awesomeface.png", GL_REPEAT, GL_NEAREST);
 
 }
 
@@ -130,6 +131,14 @@ void drawRectangle() {
 void processInput(GLFWwindow* window) {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+    }
+    if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        mixFactor += 0.01;
+        textureShader->setFloat("mixFactor", mixFactor);
+    }
+    if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        mixFactor -= 0.01;
+        textureShader->setFloat("mixFactor", mixFactor);
     }
 }
 
