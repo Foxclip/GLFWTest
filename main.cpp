@@ -36,6 +36,9 @@ glm::vec3 cubePositions[] = {
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(45.0f), (float)width/height, 0.1f, 100.0f);
+    textureShader->setMatrix("projection", projection);
 }
 
 void initGLFW() {
