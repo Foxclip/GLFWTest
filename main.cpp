@@ -13,7 +13,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 Shader* textureShader;
-unsigned int texture;
+unsigned int boxTexture, awTexture;
 unsigned int VAO, VBO, EBO;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -44,26 +44,31 @@ void initShaders() {
     textureShader = new Shader("tex.vert", "tex.frag", "Texture");
 }
 
-void initTextures() {
-
+unsigned int loadTexture(char* filename) {
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
-
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char *data = stbi_load(filename, &width, &height, &nrChannels, STBI_rgb_alpha);
+    unsigned int texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
     if(data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         std::cout << "Failed to load texture\n";
     }
-
     stbi_image_free(data);
+    return texture;
+}
+
+void initTextures() {
+
+    boxTexture = loadTexture("container.jpg");
+    awTexture = loadTexture("awesomeface.png");
 
 }
 
@@ -101,11 +106,22 @@ void initRectangle() {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    textureShader->use();
+    textureShader->setInt("texture1", 0);
+    textureShader->setInt("texture2", 1);
+
 }
 
 void drawRectangle() {
+
     textureShader->use();
-    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, boxTexture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, awTexture);
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
