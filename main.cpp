@@ -10,6 +10,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "shader.h"
 #include "stb_image.h"
+#include "camera.h"
 
 GLFWwindow* window;
 unsigned int screenWidth = 800;
@@ -23,13 +24,11 @@ float mixFactor = 0.5f;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-float pitch = 0.0f;
-float yaw = -90.0f;
 float lastX = 400.0f;
 float lastY = 300.0f;
 bool firstMouse = true;
 
-float fov = 45.0f;
+Camera camera(0.0f, 0.0f, 3.0f, 0.0f, 1.0f, 0.0f);
 
 glm::vec3 cubePositions[] = {
     glm::vec3( 0.0f,  0.0f,   0.0f),
@@ -43,10 +42,6 @@ glm::vec3 cubePositions[] = {
     glm::vec3( 1.5f,  0.2f,  -1.5f),
     glm::vec3(-1.3f,  1.0f,  -1.5f),
 };
-
-glm::vec3 cameraPos(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -67,37 +62,11 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     float yoffset = lastY - ypos;
     lastX = xpos;
     lastY = ypos;
-    float sensitivity = 0.05f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-    yaw += xoffset;
-    pitch += yoffset;
-    if(pitch > 89.0f) {
-        pitch = 89.0f;
-    }
-    if(pitch < -89.0f) {
-        pitch = -89.0f;
-    }
-    glm::vec3 front;
-    front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-    front.y = sin(glm::radians(pitch));
-    front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-    cameraFront = glm::normalize(front);
+    camera.processMouse(xoffset, yoffset);
 }
 
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-    if(fov >= 1.0f && fov <= 90.0f) {
-        fov -= yoffset;
-    }
-    if(fov < 1.0f) {
-        fov = 1.0f;
-    }
-    if(fov > 90.0f) {
-        fov = 90.0f;
-    }
-    glm::mat4 projection;
-    projection = glm::perspective(glm::radians(fov), (float)screenWidth/screenHeight, 0.1f, 100.0f);
-    textureShader->setMatrix("projection", projection);
+    camera.processScroll(yoffset);
 }
 
 void initGLFW() {
@@ -221,10 +190,6 @@ void initCubes() {
     textureShader->setInt("texture1", 0);
     textureShader->setInt("texture2", 1);
 
-    glm::mat4 projection;
-    projection = glm::perspective(glm::radians(fov), (float)screenWidth/screenHeight, 0.1f, 100.0f);
-    textureShader->setMatrix("projection", projection);
-
 }
 
 void processInput(GLFWwindow* window) {
@@ -244,18 +209,17 @@ void processInput(GLFWwindow* window) {
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-    float cameraSpeed = 2.5f*deltaTime;
     if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        cameraPos += cameraSpeed * cameraFront;
+        camera.processKeyboard(FORWARD, deltaTime);
     }
     if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        cameraPos -= cameraSpeed * cameraFront;
+        camera.processKeyboard(BACKWARD, deltaTime);
     }
     if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.processKeyboard(LEFT, deltaTime);
     }
     if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.processKeyboard(RIGHT, deltaTime);
     }
 
 }
@@ -289,16 +253,11 @@ void drawCubes() {
 
 void render() {
 
-    //glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    //glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    //glm::vec3 reverseCameraDirection = glm::normalize(cameraPos - cameraTarget);
-    //glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-    //glm::vec3 cameraRight = glm::normalize(glm::cross(up, reverseCameraDirection));
-    //glm::vec3 cameraUp = glm::cross(reverseCameraDirection, cameraRight);
-
-    glm::mat4 view;
-    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    glm::mat4 view = camera.getViewMatrix();
     textureShader->setMatrix("view", view);
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(camera.fov), (float)screenWidth/screenHeight, 0.1f, 100.0f);
+    textureShader->setMatrix("projection", projection);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
