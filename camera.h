@@ -6,7 +6,7 @@
 
 const float D_YAW = -90.0f;
 const float D_PITCH = 0.0f;
-const float D_SPEED = 2.5f;
+const float D_SPEED = 1.5f;
 const float D_SENSITIVITY = 0.1f;
 const float D_FOV = 45.0f;
 
@@ -68,17 +68,19 @@ inline glm::mat4 Camera::getViewMatrix() {
 
 inline void Camera::processKeyboard(Direction direction, float deltaTime) {
     float velocity = movementSpeed * deltaTime;
+    glm::vec3 movementDirectionFront = glm::normalize(glm::vec3(cameraFront.x, 0, cameraFront.z));
+    glm::vec3 movementDirectionRight = glm::normalize(glm::vec3(cameraRight.x, 0, cameraRight.z));
     if(direction == FORWARD) {
-        position += cameraFront * velocity;
+        position += movementDirectionFront * velocity;
     }
     if(direction == BACKWARD) {
-        position -= cameraFront * velocity;
+        position -= movementDirectionFront * velocity;
     }
     if(direction == LEFT) {
-        position -= cameraRight * velocity;
+        position -= movementDirectionRight * velocity;
     }
     if(direction == RIGHT) {
-        position += cameraRight * velocity;
+        position += movementDirectionRight * velocity;
     }
 }
 
@@ -92,7 +94,7 @@ inline void Camera::processMouse(float xoffset, float yoffset, bool costraintPit
             pitch = 89.0f;
         }
         if(pitch < -89.0f) {
-
+            pitch = -89.0f;
         }
     }
     updateCameraVectors();
