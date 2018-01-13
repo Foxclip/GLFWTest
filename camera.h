@@ -23,7 +23,7 @@ public:
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = D_YAW, float pitch = D_PITCH);
     Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw = D_YAW, float pitch = D_PITCH);
 
-    glm::vec3 position;
+    glm::vec3 cameraPosition;
     glm::vec3 cameraFront;
     glm::vec3 cameraUp;
     glm::vec3 cameraRight;
@@ -47,7 +47,7 @@ private:
 };
 
 inline Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch): cameraFront(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(D_SPEED), mouseSensitivity(D_SENSITIVITY), fov(D_FOV) {
-    this->position = position;
+    this->cameraPosition = position;
     this->worldUp = up;
     this->yaw = yaw;
     this->pitch = pitch;
@@ -55,7 +55,7 @@ inline Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch):
 }
 
 inline Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch): cameraFront(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(D_SPEED), mouseSensitivity(D_SENSITIVITY), fov(D_FOV) {
-    position = glm::vec3(posX, posY, posZ);
+    cameraPosition = glm::vec3(posX, posY, posZ);
     worldUp = glm::vec3(upX, upY, upZ);
     this->yaw = yaw;
     this->pitch = pitch;
@@ -63,7 +63,16 @@ inline Camera::Camera(float posX, float posY, float posZ, float upX, float upY, 
 }
 
 inline glm::mat4 Camera::getViewMatrix() {
-    return glm::lookAt(position, position + cameraFront, cameraUp);
+    glm::mat4 mat1(cameraRight.x, cameraUp.x, -cameraFront.x, 0,
+                   cameraRight.y, cameraUp.y, -cameraFront.y, 0,
+                   cameraRight.z, cameraUp.z, -cameraFront.z, 0,
+                   0,             0,          0,             1);
+    glm::mat4 mat2(1,                  0,                 0,                0,
+                   0,                  1,                 0,                0,
+                   0,                  0,                 1,                0,
+                  -cameraPosition.x,  -cameraPosition.y, -cameraPosition.z, 1);
+    return mat1 * mat2;
+    //return glm::lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
 }
 
 inline void Camera::processKeyboard(Direction direction, float deltaTime) {
@@ -71,16 +80,16 @@ inline void Camera::processKeyboard(Direction direction, float deltaTime) {
     glm::vec3 movementDirectionFront = glm::normalize(glm::vec3(cameraFront.x, 0, cameraFront.z));
     glm::vec3 movementDirectionRight = glm::normalize(glm::vec3(cameraRight.x, 0, cameraRight.z));
     if(direction == FORWARD) {
-        position += movementDirectionFront * velocity;
+        cameraPosition += movementDirectionFront * velocity;
     }
     if(direction == BACKWARD) {
-        position -= movementDirectionFront * velocity;
+        cameraPosition -= movementDirectionFront * velocity;
     }
     if(direction == LEFT) {
-        position -= movementDirectionRight * velocity;
+        cameraPosition -= movementDirectionRight * velocity;
     }
     if(direction == RIGHT) {
-        position += movementDirectionRight * velocity;
+        cameraPosition += movementDirectionRight * velocity;
     }
 }
 
