@@ -93,7 +93,10 @@ void processInput(GLFWwindow* window) {
 }
 
 void initCubes() {
-    cubes.push_back(Cube(0.0f, 0.0f, 0.0f));
+    cubes.push_back(Cube(0.0f, 0.0f, 0.0f, 0.0f));
+    cubes.push_back(Cube(-0.5f, 1.0f, 0.0f, 0.0f));
+    cubes.push_back(Cube(-1.0f, 2.0f, 0.0f, 0.0f));
+    cubes.push_back(Cube(-1.5f, 3.0f, 0.0f, 0.0f));
 }
 
 void render() {
@@ -103,7 +106,9 @@ void render() {
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    cubes[0].render(view, projection);
+    for(Cube cube: cubes) {
+        cube.render(view, projection);
+    }
 
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -123,6 +128,7 @@ int main() {
     initCubes();
 
     mainLoop();
+
     glfwTerminate();
 
     return 0;

@@ -21,9 +21,10 @@ unsigned int loadTexture(char* filename, GLenum edge = GL_REPEAT, GLenum interpo
     return texture;
 }
 
-Cube::Cube(float x, float y, float z) {
+Cube::Cube(float x, float y, float z, float yaw) {
 
     position = {x, y, z};
+    this->yaw = yaw;
 
     textureShader = new Shader("tex.vert", "tex.frag", "Texture");
     boxTexture = loadTexture("container.jpg");
@@ -100,6 +101,7 @@ void Cube::render(glm::mat4 pView, glm::mat4 pProjection) {
     textureShader->setMatrix("projection", pProjection);
     glm::mat4 model;
     model = glm::translate(model, position);
+    model = glm::rotate(model, glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
     textureShader->setMatrix("model", model);
 
     glActiveTexture(GL_TEXTURE0);

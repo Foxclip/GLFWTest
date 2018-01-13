@@ -16,13 +16,14 @@
 
 class Cube {
 public:
-    Cube(float x, float y, float z);
+    Cube(float x, float y, float z, float yaw);
     void render(glm::mat4 view, glm::mat4 projection);
 
 
 private:
 
-    glm::vec3 position = {0.0f, 0.0f, 0.0f};
+    glm::vec3 position;
+    float yaw;
 
     unsigned int VAO;
     unsigned int VBO;
