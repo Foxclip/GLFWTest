@@ -12,6 +12,8 @@
 #include <sstream>
 #include <iostream>
 
+const std::string shaderFolderName = "shaders";
+
 class Shader {
 public:
     Shader(std::string vertexPath, std::string fragmentPath, char* name);

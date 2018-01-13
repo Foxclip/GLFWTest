@@ -15,7 +15,7 @@ char* readFile(std::string filename) {
 
 int compileShader(std::string filename, GLenum type, char* name) {
     int shader = glCreateShader(type);
-    char* source = readFile(filename);
+    char* source = readFile(shaderFolderName + "/" + filename);
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
     int success;
@@ -25,10 +25,10 @@ int compileShader(std::string filename, GLenum type, char* name) {
         glGetShaderInfoLog(shader, 512, NULL, infolog);
         std::string typestr;
         switch(type) {
-            case GL_VERTEX_SHADER:   typestr = "vertex";   break;
-            case GL_FRAGMENT_SHADER: typestr = "fragment"; break;
+            case GL_VERTEX_SHADER:   typestr = "Vertex";   break;
+            case GL_FRAGMENT_SHADER: typestr = "Fragment"; break;
         }
-        std::cout << name << " " << typestr << " shader compilation failed\n" << infolog << "\n";
+        std::cout << typestr << " shader compilation failed: " << name << "\n" << infolog << "\n";
     }
     return shader;
 }
@@ -46,7 +46,7 @@ Shader::Shader(std::string vertexPath, std::string fragmentPath, char* name) {
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if(!success) {
         glGetShaderInfoLog(shaderProgram, 512, NULL, infolog);
-        std::cout << name << " linking failed\n" << infolog << "\n";
+        std::cout << "Shader linking failed: " << name << "\n";
     }
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
