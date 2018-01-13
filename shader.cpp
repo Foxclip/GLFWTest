@@ -23,7 +23,7 @@ int compileShader(std::string filename, GLenum type, char* name) {
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if(!success) {
         glGetShaderInfoLog(shader, 512, NULL, infolog);
-        char* typestr;
+        std::string typestr;
         switch(type) {
             case GL_VERTEX_SHADER:   typestr = "vertex";   break;
             case GL_FRAGMENT_SHADER: typestr = "fragment"; break;

@@ -16,15 +16,19 @@
 
 class Cube {
 public:
-    Cube();
+    Cube(float x, float y, float z);
     void render(glm::mat4 view, glm::mat4 projection);
 
 
 private:
+
+    glm::vec3 position = {0.0f, 0.0f, 0.0f};
+
     unsigned int VAO;
     unsigned int VBO;
     Shader* textureShader;
     unsigned int boxTexture;
     unsigned int awTexture;
+
 
 };

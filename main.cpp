@@ -8,13 +8,6 @@ GLFWwindow* window;
 unsigned int screenWidth = 800;
 unsigned int screenHeight = 600;
 
-//Shader* textureShader;
-//unsigned int boxTexture, awTexture;
-//unsigned int VAO, VBO, EBO;
-//float mixFactor = 0.5f;
-
-glm::mat4 projection;
-
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -100,7 +93,7 @@ void processInput(GLFWwindow* window) {
 }
 
 void initCubes() {
-    cubes.push_back(Cube());
+    cubes.push_back(Cube(0.0f, 0.0f, 0.0f));
 }
 
 void render() {

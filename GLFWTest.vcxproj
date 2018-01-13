@@ -85,6 +85,10 @@
     <IncludePath>$(GLFW_HOME)\include\;$(IncludePath)</IncludePath>
     <LibraryPath>$(GLFW_HOME)\lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(GLFW_HOME)\include\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(GLFW_HOME)\lib\;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
