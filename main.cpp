@@ -149,7 +149,6 @@ void initCubes() {
 
     Shader lightingShader("plain.vert", "color.frag", "Lighting");
     lightingShader.use();
-    lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
     lightingShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
     lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
     lightingShader.setVec3("material.specular", 1.0f, 0.5f, 0.31f);
@@ -157,8 +156,18 @@ void initCubes() {
     lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
     lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
     lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
     Material lightingMaterial(lightingShader, {});
+
+    Shader emeraldShader("plain.vert", "color.frag", "Emerald");
+    emeraldShader.use();
+    emeraldShader.setVec3("material.ambient", 0.0215f, 0.1745f, 0.0215f);
+    emeraldShader.setVec3("material.diffuse", 0.07568f, 0.61424f, 0.07568f);
+    emeraldShader.setVec3("material.specular", 0.633f, 0.727811f, 0.633f);
+    emeraldShader.setFloat("material.shininess", 76.8f);
+    emeraldShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+    emeraldShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+    emeraldShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+    Material emeraldMaterial(emeraldShader, {});
 
     Shader lampShader("plain.vert", "lamp.frag", "Lamp");
     Material lampMaterial(lampShader, {});
@@ -169,6 +178,8 @@ void initCubes() {
     Cube lampCube(lightPos, 0.0f, 0.2f, VBO, lampMaterial);
     cubes.push_back(lampCube);
     sceneLightIndex = cubes.size() - 1;
+    Cube emeraldCube(glm::vec3(2.0f, 0.0f, 0.0f), 0.0f, 1.0f, VBO, emeraldMaterial);
+    cubes.push_back(emeraldCube);
 }
 
 void processPhysics() {
