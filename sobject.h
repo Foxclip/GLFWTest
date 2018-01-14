@@ -21,6 +21,7 @@ private:
 class Cube {
 public:
     Cube(float x, float y, float z, float yaw, float scale, unsigned int VBO, Material material);
+    Cube(glm::vec3 pos, float yaw, float scale, unsigned int VBO, Material material);
     void render(glm::mat4 view, glm::mat4 projection);
 
 private:

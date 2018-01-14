@@ -68,15 +68,17 @@ Cube::Cube(float x, float y, float z, float yaw, float scale, unsigned int VBO, 
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
 }
+
+Cube::Cube(glm::vec3 pos, float yaw, float scale, unsigned int VBO, Material material): Cube(pos.x, pos.y, pos.z, yaw, scale, VBO, material) {}
 
 void Cube::render(glm::mat4 pView, glm::mat4 pProjection) {
   
