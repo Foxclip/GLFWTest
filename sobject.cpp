@@ -90,11 +90,10 @@ void Cube::render(glm::mat4 pView, glm::mat4 pProjection, glm::vec3 lightPos, gl
     model = glm::rotate(model, glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::scale(model, glm::vec3(scale));
     material.getShader().setMat4("model", model);
-    glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(model)));
+    glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(pView * model)));
     material.getShader().setMat3("newNormal", normalMatrix);
 
     material.getShader().setVec3("lightPos", lightPos);
-    material.getShader().setVec3("viewPos", viewPos);
 
     material.setTextures();
 

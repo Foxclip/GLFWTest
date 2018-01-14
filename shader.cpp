@@ -46,7 +46,7 @@ Shader::Shader(std::string vertexPath, std::string fragmentPath, char* name) {
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if(!success) {
         glGetShaderInfoLog(shaderProgram, 512, NULL, infolog);
-        std::cout << "Shader linking failed: " << name << "\n";
+        std::cout << "Shader linking failed: " << name << "\n\n";
     }
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
