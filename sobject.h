@@ -16,9 +16,8 @@
 
 class Cube {
 public:
-    Cube(float x, float y, float z, float yaw);
+    Cube(float x, float y, float z, float yaw, unsigned int VBO);
     void render(glm::mat4 view, glm::mat4 projection);
-
 
 private:
 
@@ -26,7 +25,7 @@ private:
     float yaw;
 
     unsigned int VAO;
-    unsigned int VBO;
+    //unsigned int VBO;
     Shader* textureShader;
     unsigned int boxTexture;
     unsigned int awTexture;
