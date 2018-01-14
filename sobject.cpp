@@ -105,3 +105,7 @@ void Cube::render(glm::mat4 pView, glm::mat4 pProjection, glm::vec3 lightPos, gl
 glm::vec3 Cube::getPosition() {
     return position;
 }
+
+void Cube::setPosition(glm::vec3 position) {
+    this->position = position;
+}

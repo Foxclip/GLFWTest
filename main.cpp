@@ -162,6 +162,12 @@ void initCubes() {
     sceneLight = &cubes.back();
 }
 
+void processPhysics() {
+    double time = glfwGetTime();
+    double radius = 1.0;
+    sceneLight->setPosition(glm::vec3(cos(time)*radius, 0.0f, sin(time)*radius));
+}
+
 void render() {
 
     glm::mat4 view = camera.getViewMatrix();
@@ -180,7 +186,7 @@ void render() {
 void mainLoop() {
     while(!glfwWindowShouldClose(window)) {
         processInput(window);
-        //processPhysics();
+        processPhysics();
         render();
     }
 }
