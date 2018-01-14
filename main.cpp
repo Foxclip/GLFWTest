@@ -18,6 +18,7 @@ bool firstMouse = true;
 Camera camera(0.0f, 0.0f, 4.0f, 0.0f, 1.0f, 0.0f);
 
 std::vector<Cube> cubes;
+Cube* sceneLight;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -149,14 +150,16 @@ void initCubes() {
     lightingShader.use();
     lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
     lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-    lightingShader.setVec3("lightPos", lightPos);
     Material lightingMaterial(lightingShader, {});
 
     Shader lampShader("plain.vert", "lamp.frag", "Lamp");
     Material lampMaterial(lampShader, {});
 
-    cubes.push_back(Cube(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, VBO, lightingMaterial));
-    cubes.push_back(Cube(lightPos, 0.0f, 0.2f, VBO, lampMaterial));
+    Cube mainCube(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, VBO, lightingMaterial);
+    cubes.push_back(mainCube);
+    Cube lampCube(lightPos, 0.0f, 0.2f, VBO, lampMaterial);
+    cubes.push_back(lampCube);
+    sceneLight = &cubes.back();
 }
 
 void render() {
@@ -167,7 +170,7 @@ void render() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for(Cube cube: cubes) {
-        cube.render(view, projection);
+        cube.render(view, projection, sceneLight->getPosition(), camera.cameraPosition);
     }
 
     glfwSwapBuffers(window);

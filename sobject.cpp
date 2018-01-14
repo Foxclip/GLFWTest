@@ -80,7 +80,7 @@ Cube::Cube(float x, float y, float z, float yaw, float scale, unsigned int VBO, 
 
 Cube::Cube(glm::vec3 pos, float yaw, float scale, unsigned int VBO, Material material): Cube(pos.x, pos.y, pos.z, yaw, scale, VBO, material) {}
 
-void Cube::render(glm::mat4 pView, glm::mat4 pProjection) {
+void Cube::render(glm::mat4 pView, glm::mat4 pProjection, glm::vec3 lightPos, glm::vec3 viewPos) {
   
     material.getShader().use();
     material.getShader().setMat4("view", pView);
@@ -91,10 +91,17 @@ void Cube::render(glm::mat4 pView, glm::mat4 pProjection) {
     model = glm::scale(model, glm::vec3(scale));
     material.getShader().setMat4("model", model);
 
+    material.getShader().setVec3("lightPos", lightPos);
+    material.getShader().setVec3("viewPos", viewPos);
+
     material.setTextures();
 
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     //glBindVertexArray(0);
 
+}
+
+glm::vec3 Cube::getPosition() {
+    return position;
 }
