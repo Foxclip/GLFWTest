@@ -15,7 +15,7 @@ float lastX = 400.0f;
 float lastY = 300.0f;
 bool firstMouse = true;
 
-Camera camera(0.0f, 0.0f, 3.0f, 0.0f, 1.0f, 0.0f);
+Camera camera(0.0f, 0.0f, 4.0f, 0.0f, 1.0f, 0.0f);
 
 std::vector<Cube> cubes;
 
@@ -143,15 +143,17 @@ void initCubes() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    unsigned int boxTexture = loadTexture("container.jpg");
-    unsigned int awTexture = loadTexture("awesomeface.png");
-    Shader texShader("tex.vert", "tex.frag", "AwBox");
-    Material awBox(texShader, { boxTexture, awTexture });
+    Shader lightingShader("plain.vert", "color.frag", "Lighting");
+    lightingShader.use();
+    lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+    lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+    Material lightingMaterial(lightingShader, {});
 
-    cubes.push_back(Cube(0.0f, 0.0f, 0.0f, 0.0f, VBO, awBox));
-    cubes.push_back(Cube(-0.5f, 1.0f, 0.0f, 0.0f, VBO, awBox));
-    cubes.push_back(Cube(-1.0f, 2.0f, 0.0f, 0.0f, VBO, awBox));
-    cubes.push_back(Cube(-1.5f, 3.0f, 0.0f, 0.0f, VBO, awBox));
+    Shader lampShader("plain.vert", "lamp.frag", "Lamp");
+    Material lampMaterial(lampShader, {});
+
+    cubes.push_back(Cube(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, VBO, lightingMaterial));
+    cubes.push_back(Cube(-1.0f, 1.0f, 1.0f, 0.0f, 0.2f, VBO, lampMaterial));
 }
 
 void render() {

@@ -55,10 +55,11 @@ void Material::setTextures() {
 }
 
 
-Cube::Cube(float x, float y, float z, float yaw, unsigned int VBO, Material material) {
+Cube::Cube(float x, float y, float z, float yaw, float scale, unsigned int VBO, Material material) {
 
     position = {x, y, z};
     this->yaw = yaw;
+    this->scale = scale;
 
     this->material = material;
 
@@ -80,12 +81,13 @@ Cube::Cube(float x, float y, float z, float yaw, unsigned int VBO, Material mate
 void Cube::render(glm::mat4 pView, glm::mat4 pProjection) {
   
     material.getShader().use();
-    material.getShader().setMatrix("view", pView);
-    material.getShader().setMatrix("projection", pProjection);
+    material.getShader().setMat4("view", pView);
+    material.getShader().setMat4("projection", pProjection);
     glm::mat4 model;
     model = glm::translate(model, position);
     model = glm::rotate(model, glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
-    material.getShader().setMatrix("model", model);
+    model = glm::scale(model, glm::vec3(scale));
+    material.getShader().setMat4("model", model);
 
     material.setTextures();
 

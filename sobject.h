@@ -20,13 +20,14 @@ private:
 
 class Cube {
 public:
-    Cube(float x, float y, float z, float yaw, unsigned int VBO, Material material);
+    Cube(float x, float y, float z, float yaw, float scale, unsigned int VBO, Material material);
     void render(glm::mat4 view, glm::mat4 projection);
 
 private:
 
     glm::vec3 position;
     float yaw;
+    float scale;
 
     unsigned int VAO;
     Material material;
