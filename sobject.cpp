@@ -1,6 +1,6 @@
 #include "sobject.h"
 
-unsigned int loadTexture(char* filename, GLenum edge = GL_REPEAT, GLenum interpolation = GL_LINEAR) {
+unsigned int loadTexture(char* filename, GLenum edge, GLenum interpolation) {
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(filename, &width, &height, &nrChannels, STBI_rgb_alpha);
@@ -21,14 +21,46 @@ unsigned int loadTexture(char* filename, GLenum edge = GL_REPEAT, GLenum interpo
     return texture;
 }
 
-Cube::Cube(float x, float y, float z, float yaw, unsigned int VBO) {
+Material::Material(Shader shader, std::vector<unsigned int> textures) {
+
+    this->shader = shader;
+    this->textures = textures;
+
+    std::string names[] = {
+        "texture1", "texture2", "texture3", "texture4", "texture5", "texture6", "texture7", "texture8",
+        "texture9", "texture10", "texture11", "texture12", "texture13", "texture14", "texture15","texture16"
+    };
+
+    shader.use();
+    for(int i = 0; i < textures.size(); i++) {
+        shader.setInt(names[i], i);
+    }
+
+}
+
+Shader Material::getShader() {
+    return shader;
+}
+
+void Material::setTextures() {
+    unsigned int slots[] = {
+        GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3, GL_TEXTURE4, GL_TEXTURE5, GL_TEXTURE6, GL_TEXTURE7,
+        GL_TEXTURE8, GL_TEXTURE9, GL_TEXTURE10, GL_TEXTURE11, GL_TEXTURE12, GL_TEXTURE13, GL_TEXTURE14, GL_TEXTURE15
+    };
+    shader.use();
+    for(int i = 0; i < textures.size(); i++) {
+        glActiveTexture(slots[i]);
+        glBindTexture(GL_TEXTURE_2D, textures[i]);
+    }
+}
+
+
+Cube::Cube(float x, float y, float z, float yaw, unsigned int VBO, Material material) {
 
     position = {x, y, z};
     this->yaw = yaw;
 
-    textureShader = new Shader("tex.vert", "tex.frag", "Texture");
-    boxTexture = loadTexture("container.jpg");
-    awTexture = loadTexture("awesomeface.png");
+    this->material = material;
 
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -43,26 +75,19 @@ Cube::Cube(float x, float y, float z, float yaw, unsigned int VBO) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    textureShader->use();
-    textureShader->setInt("texture1", 0);
-    textureShader->setInt("texture2", 1);
-
 }
 
 void Cube::render(glm::mat4 pView, glm::mat4 pProjection) {
   
-    textureShader->use();
-    textureShader->setMatrix("view", pView);
-    textureShader->setMatrix("projection", pProjection);
+    material.getShader().use();
+    material.getShader().setMatrix("view", pView);
+    material.getShader().setMatrix("projection", pProjection);
     glm::mat4 model;
     model = glm::translate(model, position);
     model = glm::rotate(model, glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
-    textureShader->setMatrix("model", model);
+    material.getShader().setMatrix("model", model);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, boxTexture);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, awTexture);
+    material.setTextures();
 
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);

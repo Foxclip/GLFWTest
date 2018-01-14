@@ -16,6 +16,7 @@ const std::string shaderFolderName = "shaders";
 
 class Shader {
 public:
+    Shader() {}
     Shader(std::string vertexPath, std::string fragmentPath, char* name);
     void use();
     void setBool(const std::string &name, bool value) const;

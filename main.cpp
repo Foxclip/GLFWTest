@@ -143,10 +143,15 @@ void initCubes() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    cubes.push_back(Cube(0.0f, 0.0f, 0.0f, 0.0f, VBO));
-    cubes.push_back(Cube(-0.5f, 1.0f, 0.0f, 0.0f, VBO));
-    cubes.push_back(Cube(-1.0f, 2.0f, 0.0f, 0.0f, VBO));
-    cubes.push_back(Cube(-1.5f, 3.0f, 0.0f, 0.0f, VBO));
+    unsigned int boxTexture = loadTexture("container.jpg");
+    unsigned int awTexture = loadTexture("awesomeface.png");
+    Shader texShader("tex.vert", "tex.frag", "AwBox");
+    Material awBox(texShader, { boxTexture, awTexture });
+
+    cubes.push_back(Cube(0.0f, 0.0f, 0.0f, 0.0f, VBO, awBox));
+    cubes.push_back(Cube(-0.5f, 1.0f, 0.0f, 0.0f, VBO, awBox));
+    cubes.push_back(Cube(-1.0f, 2.0f, 0.0f, 0.0f, VBO, awBox));
+    cubes.push_back(Cube(-1.5f, 3.0f, 0.0f, 0.0f, VBO, awBox));
 }
 
 void render() {

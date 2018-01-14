@@ -4,19 +4,23 @@
 #include "stb_image.h"
 #include "shader.h"
 
-//struct Texture {
-//    unsigned int id;
-//    std::string name;
-//};
-//
-//struct Material {
-//    std::vector<Texture> textures;
-//    Shader shader;
-//};
+unsigned int loadTexture(char* filename, GLenum edge = GL_REPEAT, GLenum interpolation = GL_LINEAR);
+
+class Material {
+public:
+    Material() {}
+    Material(Shader shader, std::vector<unsigned int> textures);
+    Shader getShader();
+    void setTextures();
+
+private:
+    Shader shader;
+    std::vector<unsigned int> textures;
+};
 
 class Cube {
 public:
-    Cube(float x, float y, float z, float yaw, unsigned int VBO);
+    Cube(float x, float y, float z, float yaw, unsigned int VBO, Material material);
     void render(glm::mat4 view, glm::mat4 projection);
 
 private:
@@ -25,10 +29,6 @@ private:
     float yaw;
 
     unsigned int VAO;
-    //unsigned int VBO;
-    Shader* textureShader;
-    unsigned int boxTexture;
-    unsigned int awTexture;
-
+    Material material;
 
 };
