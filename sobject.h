@@ -22,9 +22,10 @@ class Cube {
 public:
     Cube(float x, float y, float z, float yaw, float scale, unsigned int VBO, Material material);
     Cube(glm::vec3 pos, float yaw, float scale, unsigned int VBO, Material material);
-    void render(glm::mat4 view, glm::mat4 projection, glm::vec3 lightPos, glm::vec3 viewPos);
+    void render(glm::mat4 view, glm::mat4 projection, glm::vec3 lightPos);
     glm::vec3 getPosition();
     void setPosition(glm::vec3 position);
+    Material getMaterial();
 
 private:
 

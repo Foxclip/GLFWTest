@@ -18,7 +18,8 @@ bool firstMouse = true;
 Camera camera(0.0f, 0.0f, 4.0f, 0.0f, 1.0f, 0.0f);
 
 std::vector<Cube> cubes;
-Cube* sceneLight;
+unsigned int sceneLightIndex;
+unsigned int sceneMainCubeIndex;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -148,24 +149,45 @@ void initCubes() {
 
     Shader lightingShader("plain.vert", "color.frag", "Lighting");
     lightingShader.use();
-    lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
     lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+    lightingShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+    lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+    lightingShader.setVec3("material.specular", 1.0f, 0.5f, 0.31f);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+    lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+    lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
     Material lightingMaterial(lightingShader, {});
 
     Shader lampShader("plain.vert", "lamp.frag", "Lamp");
     Material lampMaterial(lampShader, {});
 
-    Cube mainCube(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, VBO, lightingMaterial);
+    Cube mainCube(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, VBO, lightingMaterial);
     cubes.push_back(mainCube);
+    sceneMainCubeIndex = cubes.size() - 1;
     Cube lampCube(lightPos, 0.0f, 0.2f, VBO, lampMaterial);
     cubes.push_back(lampCube);
-    sceneLight = &cubes.back();
+    sceneLightIndex = cubes.size() - 1;
 }
 
 void processPhysics() {
+
     double time = glfwGetTime();
     double radius = 1.0;
-    sceneLight->setPosition(glm::vec3(cos(time)*radius, 0.0f, sin(time)*radius));
+    cubes[sceneLightIndex].setPosition(glm::vec3(cos(time)*radius, 0.0f, sin(time)*radius));
+
+    glm::vec3 lightColor;
+    lightColor.x = sin(glfwGetTime() * 2.0f)/2.0f + 0.5f;
+    lightColor.y = sin(glfwGetTime() * 0.7f)/2.0f + 0.5f;
+    lightColor.z = sin(glfwGetTime() * 1.3f)/2.0f + 0.5f;
+    glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+    glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+    Shader cubeMatShader = cubes[sceneMainCubeIndex].getMaterial().getShader();
+    cubeMatShader.use();
+    cubeMatShader.setVec3("light.ambient", ambientColor);
+    cubeMatShader.setVec3("light.diffuse", diffuseColor);
+
 }
 
 void render() {
@@ -176,7 +198,7 @@ void render() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for(Cube cube: cubes) {
-        cube.render(view, projection, sceneLight->getPosition(), camera.cameraPosition);
+        cube.render(view, projection, cubes[sceneLightIndex].getPosition());
     }
 
     glfwSwapBuffers(window);
