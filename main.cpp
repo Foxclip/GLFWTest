@@ -18,8 +18,7 @@ bool firstMouse = true;
 Camera camera(0.0f, 0.0f, 4.0f, 0.0f, 1.0f, 0.0f);
 
 std::vector<Cube> cubes;
-unsigned int sceneLightIndex;
-unsigned int sceneMainCubeIndex;
+std::vector<DirectionalLight> dirLights;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -143,6 +142,11 @@ void initCubes() {
 
     glm::vec3 lightPos(-0.8f, 1.5f, 1.0f);
 
+    DirectionalLight dirLightLeft = {1.0f, glm::vec3(0.5f, 0.5f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
+    DirectionalLight dirLightRight = {0.5f, glm::vec3(1.0f, 0.5f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
+    dirLights.push_back(dirLightLeft);
+    dirLights.push_back(dirLightRight);
+
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -154,20 +158,31 @@ void initCubes() {
 
     Shader lightingShader("plain.vert", "color.frag", "Lighting");
     lightingShader.use();
+
     lightingShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-    //lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-    //lightingShader.setVec3("material.specular", 1.0f, 1.0f, 1.0f);
     lightingShader.setFloat("material.shininess", 8.0f);
-    lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-    lightingShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
-    lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-    lightingShader.setFloat("light.constant", 1.0f);
-    lightingShader.setFloat("light.linear", 1.0f);
-    lightingShader.setFloat("light.quadratic", 1.0f);
-    //lightingShader.setVec3("light.position", lightPos);
-    lightingShader.setFloat("light.intensity", 30);
-    lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-    lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+
+    lightingShader.setInt("dirLightCount", dirLights.size());
+    for(int i = 0; i < dirLights.size(); i++) {
+        lightingShader.setFloat("dirLights["+std::to_string(i)+"].intensity", dirLights[i].intensity);
+        lightingShader.setVec3("dirLights["+std::to_string(i)+"].color", dirLights[i].color);
+        lightingShader.setVec3("dirLights["+std::to_string(i)+"].ambient", dirLights[i].ambient);
+    }
+
+    //lightingShader.setFloat("dirLight.intensity", 1.0f);
+    //lightingShader.setVec3("dirLight.direction", 0.0f, -1.0f, 0.0f);
+    //lightingShader.setVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
+
+    //lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+    //lightingShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
+    //lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+    //lightingShader.setFloat("light.constant", 1.0f);
+    //lightingShader.setFloat("light.linear", 1.0f);
+    //lightingShader.setFloat("light.quadratic", 1.0f);
+    ////lightingShader.setVec3("light.position", lightPos);
+    //lightingShader.setFloat("light.intensity", 30);
+    //lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+    //lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
     Material lightingMaterial(lightingShader, {containerDiffuse, containerSpecular});
 
     Shader lampShader("plain.vert", "lamp.frag", "Lamp");
@@ -194,9 +209,8 @@ void initCubes() {
     //Cube mainCube(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, VBO, lightingMaterial);
     //cubes.push_back(mainCube);
     //sceneMainCubeIndex = cubes.size() - 1;
-    Cube lampCube(lightPos, 0.2f, VBO, lampMaterial);
-    cubes.push_back(lampCube);
-    sceneLightIndex = cubes.size() - 1;
+    //Cube lampCube(lightPos, 0.2f, VBO, lampMaterial);
+    //cubes.push_back(lampCube);
 }
 
 void processPhysics() {
@@ -220,7 +234,7 @@ void render() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for(Cube cube: cubes) {
-        cube.render(view, projection, camera.cameraPosition, camera.cameraFront);
+        cube.render(view, projection, dirLights);
     }
 
     glfwSwapBuffers(window);
