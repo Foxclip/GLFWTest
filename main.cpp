@@ -97,47 +97,48 @@ void processInput(GLFWwindow* window) {
 void initCubes() {
 
     float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        // positions          // normals           // texture coords
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
 
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
     };
 
     glm::vec3 lightPos(-0.8f, 1.5f, 1.0f);
@@ -147,27 +148,19 @@ void initCubes() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+    Texture containerDiffuse("material.diffuse", "container2.png");
+    Texture containerSpecular("material.specular", "container2_specular.png");
+
     Shader lightingShader("plain.vert", "color.frag", "Lighting");
     lightingShader.use();
     lightingShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-    lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-    lightingShader.setVec3("material.specular", 1.0f, 0.5f, 0.31f);
-    lightingShader.setFloat("material.shininess", 32.0f);
+    //lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+    //lightingShader.setVec3("material.specular", 1.0f, 1.0f, 1.0f);
+    lightingShader.setFloat("material.shininess", 8.0f);
     lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
     lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
     lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-    Material lightingMaterial(lightingShader, {});
-
-    Shader emeraldShader("plain.vert", "color.frag", "Emerald");
-    emeraldShader.use();
-    emeraldShader.setVec3("material.ambient", 0.0215f, 0.1745f, 0.0215f);
-    emeraldShader.setVec3("material.diffuse", 0.07568f, 0.61424f, 0.07568f);
-    emeraldShader.setVec3("material.specular", 0.633f, 0.727811f, 0.633f);
-    emeraldShader.setFloat("material.shininess", 76.8f);
-    emeraldShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-    emeraldShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-    emeraldShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-    Material emeraldMaterial(emeraldShader, {});
+    Material lightingMaterial(lightingShader, {containerDiffuse, containerSpecular});
 
     Shader lampShader("plain.vert", "lamp.frag", "Lamp");
     Material lampMaterial(lampShader, {});
@@ -178,8 +171,6 @@ void initCubes() {
     Cube lampCube(lightPos, 0.0f, 0.2f, VBO, lampMaterial);
     cubes.push_back(lampCube);
     sceneLightIndex = cubes.size() - 1;
-    Cube emeraldCube(glm::vec3(2.0f, 0.0f, 0.0f), 0.0f, 1.0f, VBO, emeraldMaterial);
-    cubes.push_back(emeraldCube);
 }
 
 void processPhysics() {
@@ -187,17 +178,6 @@ void processPhysics() {
     double time = glfwGetTime();
     double radius = 1.0;
     cubes[sceneLightIndex].setPosition(glm::vec3(cos(time)*radius, 0.0f, sin(time)*radius));
-
-    glm::vec3 lightColor;
-    lightColor.x = sin(glfwGetTime() * 2.0f)/2.0f + 0.5f;
-    lightColor.y = sin(glfwGetTime() * 0.7f)/2.0f + 0.5f;
-    lightColor.z = sin(glfwGetTime() * 1.3f)/2.0f + 0.5f;
-    glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
-    glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
-    Shader cubeMatShader = cubes[sceneMainCubeIndex].getMaterial().getShader();
-    cubeMatShader.use();
-    cubeMatShader.setVec3("light.ambient", ambientColor);
-    cubeMatShader.setVec3("light.diffuse", diffuseColor);
 
 }
 

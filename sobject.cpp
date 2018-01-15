@@ -1,9 +1,9 @@
 #include "sobject.h"
 
-unsigned int loadTexture(char* filename, GLenum edge, GLenum interpolation) {
+unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation) {
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char *data = stbi_load(filename, &width, &height, &nrChannels, STBI_rgb_alpha);
+    unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
     unsigned int texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -21,19 +21,14 @@ unsigned int loadTexture(char* filename, GLenum edge, GLenum interpolation) {
     return texture;
 }
 
-Material::Material(Shader shader, std::vector<unsigned int> textures) {
+Material::Material(Shader shader, std::vector<Texture> textures) {
 
     this->shader = shader;
     this->textures = textures;
 
-    std::string names[] = {
-        "texture1", "texture2", "texture3", "texture4", "texture5", "texture6", "texture7", "texture8",
-        "texture9", "texture10", "texture11", "texture12", "texture13", "texture14", "texture15","texture16"
-    };
-
     shader.use();
     for(int i = 0; i < textures.size(); i++) {
-        shader.setInt(names[i], i);
+        shader.setInt(textures[i].slot, i);
     }
 
 }
@@ -43,14 +38,14 @@ Shader Material::getShader() {
 }
 
 void Material::setTextures() {
-    unsigned int slots[] = {
+    unsigned int units[] = {
         GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3, GL_TEXTURE4, GL_TEXTURE5, GL_TEXTURE6, GL_TEXTURE7,
         GL_TEXTURE8, GL_TEXTURE9, GL_TEXTURE10, GL_TEXTURE11, GL_TEXTURE12, GL_TEXTURE13, GL_TEXTURE14, GL_TEXTURE15
     };
     shader.use();
     for(int i = 0; i < textures.size(); i++) {
-        glActiveTexture(slots[i]);
-        glBindTexture(GL_TEXTURE_2D, textures[i]);
+        glActiveTexture(units[i]);
+        glBindTexture(GL_TEXTURE_2D, textures[i].getId());
     }
 }
 
@@ -68,10 +63,12 @@ Cube::Cube(float x, float y, float z, float yaw, float scale, unsigned int VBO, 
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -113,4 +110,13 @@ void Cube::setPosition(glm::vec3 position) {
 
 Material Cube::getMaterial() {
     return material;
+}
+
+Texture::Texture(std::string slot, std::string filename) {
+    this->slot = slot;
+    id = loadTexture(filename);
+}
+
+unsigned int Texture::getId() {
+    return id;
 }

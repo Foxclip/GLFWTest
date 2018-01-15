@@ -4,18 +4,29 @@
 #include "stb_image.h"
 #include "shader.h"
 
-unsigned int loadTexture(char* filename, GLenum edge = GL_REPEAT, GLenum interpolation = GL_LINEAR);
+unsigned int loadTexture(std::string filename, GLenum edge = GL_REPEAT, GLenum interpolation = GL_LINEAR);
+
+class Texture {
+public:
+    Texture() {}
+    Texture(std::string slot, std::string filename);
+    std::string slot;
+    unsigned int getId();
+
+private:
+    unsigned int id;
+};
 
 class Material {
 public:
     Material() {}
-    Material(Shader shader, std::vector<unsigned int> textures);
+    Material(Shader shader, std::vector<Texture> textures);
     Shader getShader();
     void setTextures();
 
 private:
     Shader shader;
-    std::vector<unsigned int> textures;
+    std::vector<Texture> textures;
 };
 
 class Cube {
