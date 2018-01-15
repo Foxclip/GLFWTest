@@ -76,7 +76,7 @@ Cube::Cube(float x, float y, float z, float scale, unsigned int VBO, Material ma
 
 Cube::Cube(glm::vec3 pos, float scale, unsigned int VBO, Material material): Cube(pos.x, pos.y, pos.z, scale, VBO, material) {}
 
-void Cube::render(glm::mat4 pView, glm::mat4 pProjection, glm::vec3 lightDir) {
+void Cube::render(glm::mat4 pView, glm::mat4 pProjection, glm::vec3 lightPos) {
   
     material.getShader().use();
     material.getShader().setMat4("view", pView);
@@ -89,8 +89,8 @@ void Cube::render(glm::mat4 pView, glm::mat4 pProjection, glm::vec3 lightDir) {
     glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(pView * model)));
     material.getShader().setMat3("newNormal", normalMatrix);
 
-    material.getShader().setVec3("light.direction", glm::vec3(pView * glm::vec4(lightDir, 0.0f)));
-    //material.getShader().setVec3("light.direction", glm::vec4(0.0f, -1.0f, 0.0f, 0.0f));
+    //material.getShader().setVec3("light.direction", glm::vec3(pView * glm::vec4(lightDir, 0.0f)));
+    material.getShader().setVec3("light.position", glm::vec3(pView * glm::vec4(lightPos, 1.0f)));
 
     material.setTextures();
 

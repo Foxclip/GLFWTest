@@ -161,6 +161,11 @@ void initCubes() {
     lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
     lightingShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
     lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+    lightingShader.setFloat("light.constant", 1.0f);
+    lightingShader.setFloat("light.linear", 1.0f);
+    lightingShader.setFloat("light.quadratic", 1.0f);
+    lightingShader.setVec3("light.position", lightPos);
+    lightingShader.setFloat("light.intensity", 30);
     Material lightingMaterial(lightingShader, {containerDiffuse, containerSpecular});
 
     Shader lampShader("plain.vert", "lamp.frag", "Lamp");
@@ -187,9 +192,9 @@ void initCubes() {
     //Cube mainCube(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, VBO, lightingMaterial);
     //cubes.push_back(mainCube);
     //sceneMainCubeIndex = cubes.size() - 1;
-    //Cube lampCube(lightPos, 0.0f, 0.2f, VBO, lampMaterial);
-    //cubes.push_back(lampCube);
-    //sceneLightIndex = cubes.size() - 1;
+    Cube lampCube(lightPos, 0.2f, VBO, lampMaterial);
+    cubes.push_back(lampCube);
+    sceneLightIndex = cubes.size() - 1;
 }
 
 void processPhysics() {
@@ -199,7 +204,7 @@ void processPhysics() {
     //cubes[sceneLightIndex].setPosition(glm::vec3(cos(time)*radius, 0.0f, sin(time)*radius));
 
     for(int i = 0; i < 10; i++) {
-        float angle = 20.0f * i;
+        float angle = 20.0f * i * glfwGetTime();
         cubes[i].setRotation(angle, glm::vec3(1.0f, 0.3f, 0.5f));
     }
 
@@ -213,7 +218,7 @@ void render() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for(Cube cube: cubes) {
-        cube.render(view, projection, glm::vec3(0.0f, -1.0f, 0.0f));
+        cube.render(view, projection, cubes[sceneLightIndex].getPosition());
     }
 
     glfwSwapBuffers(window);
