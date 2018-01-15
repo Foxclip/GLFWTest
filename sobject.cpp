@@ -50,10 +50,9 @@ void Material::setTextures() {
 }
 
 
-Cube::Cube(float x, float y, float z, float yaw, float scale, unsigned int VBO, Material material) {
+Cube::Cube(float x, float y, float z, float scale, unsigned int VBO, Material material) {
 
     position = {x, y, z};
-    this->yaw = yaw;
     this->scale = scale;
 
     this->material = material;
@@ -75,22 +74,23 @@ Cube::Cube(float x, float y, float z, float yaw, float scale, unsigned int VBO, 
 
 }
 
-Cube::Cube(glm::vec3 pos, float yaw, float scale, unsigned int VBO, Material material): Cube(pos.x, pos.y, pos.z, yaw, scale, VBO, material) {}
+Cube::Cube(glm::vec3 pos, float scale, unsigned int VBO, Material material): Cube(pos.x, pos.y, pos.z, scale, VBO, material) {}
 
-void Cube::render(glm::mat4 pView, glm::mat4 pProjection, glm::vec3 lightPos) {
+void Cube::render(glm::mat4 pView, glm::mat4 pProjection, glm::vec3 lightDir) {
   
     material.getShader().use();
     material.getShader().setMat4("view", pView);
     material.getShader().setMat4("projection", pProjection);
     glm::mat4 model;
     model = glm::translate(model, position);
-    model = glm::rotate(model, glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(angle), axis);
     model = glm::scale(model, glm::vec3(scale));
     material.getShader().setMat4("model", model);
     glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(pView * model)));
     material.getShader().setMat3("newNormal", normalMatrix);
 
-    material.getShader().setVec3("light.position", pView * glm::vec4(lightPos, 1.0));
+    material.getShader().setVec3("light.direction", glm::vec3(pView * glm::vec4(lightDir, 0.0f)));
+    //material.getShader().setVec3("light.direction", glm::vec4(0.0f, -1.0f, 0.0f, 0.0f));
 
     material.setTextures();
 
@@ -106,6 +106,11 @@ glm::vec3 Cube::getPosition() {
 
 void Cube::setPosition(glm::vec3 position) {
     this->position = position;
+}
+
+void Cube::setRotation(float angle, glm::vec3 axis) {
+    this->angle = angle;
+    this->axis = axis;
 }
 
 Material Cube::getMaterial() {

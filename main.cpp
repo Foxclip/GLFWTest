@@ -159,26 +159,49 @@ void initCubes() {
     //lightingShader.setVec3("material.specular", 1.0f, 1.0f, 1.0f);
     lightingShader.setFloat("material.shininess", 8.0f);
     lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-    lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+    lightingShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
     lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-    Material lightingMaterial(lightingShader, {containerDiffuse, containerSpecular, containerEmission});
+    Material lightingMaterial(lightingShader, {containerDiffuse, containerSpecular});
 
     Shader lampShader("plain.vert", "lamp.frag", "Lamp");
     Material lampMaterial(lampShader, {});
 
-    Cube mainCube(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, VBO, lightingMaterial);
-    cubes.push_back(mainCube);
-    sceneMainCubeIndex = cubes.size() - 1;
-    Cube lampCube(lightPos, 0.0f, 0.2f, VBO, lampMaterial);
-    cubes.push_back(lampCube);
-    sceneLightIndex = cubes.size() - 1;
+    glm::vec3 cubePositions[] = {
+    glm::vec3( 0.0f,  0.0f,  0.0f),
+    glm::vec3( 2.0f,  5.0f, -15.0f),
+    glm::vec3(-1.5f, -2.2f, -2.5f),
+    glm::vec3(-3.8f, -2.0f, -12.3f),
+    glm::vec3( 2.4f, -0.4f, -3.5f),
+    glm::vec3(-1.7f,  3.0f, -7.5f),
+    glm::vec3( 1.3f, -2.0f, -2.5f),
+    glm::vec3( 1.5f,  2.0f, -2.5f),
+    glm::vec3( 1.5f,  0.2f, -1.5f),
+    glm::vec3(-1.3f,  1.0f, -1.5f)
+};
+
+    for(glm::vec3 pos: cubePositions) {
+        Cube newCube(pos, 1.0f, VBO, lightingMaterial);
+        cubes.push_back(newCube);
+    }
+
+    //Cube mainCube(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, VBO, lightingMaterial);
+    //cubes.push_back(mainCube);
+    //sceneMainCubeIndex = cubes.size() - 1;
+    //Cube lampCube(lightPos, 0.0f, 0.2f, VBO, lampMaterial);
+    //cubes.push_back(lampCube);
+    //sceneLightIndex = cubes.size() - 1;
 }
 
 void processPhysics() {
 
-    double time = glfwGetTime();
-    double radius = 1.0;
-    cubes[sceneLightIndex].setPosition(glm::vec3(cos(time)*radius, 0.0f, sin(time)*radius));
+    //double time = glfwGetTime();
+    //double radius = 1.0;
+    //cubes[sceneLightIndex].setPosition(glm::vec3(cos(time)*radius, 0.0f, sin(time)*radius));
+
+    for(int i = 0; i < 10; i++) {
+        float angle = 20.0f * i;
+        cubes[i].setRotation(angle, glm::vec3(1.0f, 0.3f, 0.5f));
+    }
 
 }
 
@@ -190,7 +213,7 @@ void render() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for(Cube cube: cubes) {
-        cube.render(view, projection, cubes[sceneLightIndex].getPosition());
+        cube.render(view, projection, glm::vec3(0.0f, -1.0f, 0.0f));
     }
 
     glfwSwapBuffers(window);
