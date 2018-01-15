@@ -150,6 +150,7 @@ void initCubes() {
 
     Texture containerDiffuse("material.diffuse", "container2.png");
     Texture containerSpecular("material.specular", "container2_specular.png");
+    Texture containerEmission("material.emission", "matrix.jpg");
 
     Shader lightingShader("plain.vert", "color.frag", "Lighting");
     lightingShader.use();
@@ -160,7 +161,7 @@ void initCubes() {
     lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
     lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
     lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-    Material lightingMaterial(lightingShader, {containerDiffuse, containerSpecular});
+    Material lightingMaterial(lightingShader, {containerDiffuse, containerSpecular, containerEmission});
 
     Shader lampShader("plain.vert", "lamp.frag", "Lamp");
     Material lampMaterial(lampShader, {});
