@@ -25,16 +25,16 @@ uniform int dirLightCount;
 
 struct PointLight {
 	float intensity;
+	vec3 color;
 	vec3 position;
 	float constant;
 	float linear;
 	float quadratic;
 	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
 };
 #define MAX_POINT_LIGHTS 16
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
+uniform int pointLightCount;
 
 struct SpotLight {
 	float intensity;
@@ -58,20 +58,17 @@ uniform vec3 objectColor;
 vec3 calcDirLight(DirLight light, vec3 normal) {
 
 	vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
-	ambient *= light.intensity;
 
 	vec3 lightDir = normalize(-light.direction);
 	float diff = max(dot(normal, lightDir), 0.0);
 	vec3 diffuse = diff * vec3(texture(material.diffuse, TexCoords));
-	diffuse *= light.intensity;
 
 	vec3 reflectDir = reflect(-lightDir, normal);
 	vec3 viewDir = normalize(-FragPos);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 	vec3 specular = spec * vec3(texture(material.specular, TexCoords));
-	specular *= light.intensity;
 
-	return (ambient + diffuse + specular) * light.color;
+	return (ambient + diffuse + specular) * light.color * light.intensity;
 
 }
 
@@ -81,20 +78,17 @@ vec3 calcPointLight(PointLight light, vec3 normal) {
 	float attenuation = light.intensity / (light.constant + light.linear * distance + light.quadratic * distance * distance);
 
 	vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
-	ambient *= attenuation * light.intensity;
 
 	vec3 lightDir = normalize(light.position - FragPos);
 	float diff = max(dot(normal, lightDir), 0.0);
 	vec3 diffuse = diff * vec3(texture(material.diffuse, TexCoords));
-	diffuse *= attenuation * light.intensity;
 
 	vec3 reflectDir = reflect(-lightDir, normal);
 	vec3 viewDir = normalize(-FragPos);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 	vec3 specular = spec * vec3(texture(material.specular, TexCoords));
-	specular *= attenuation * light.intensity;
 
-	return (ambient + diffuse + specular);
+	return (ambient + diffuse + specular) * light.color * light.intensity * attenuation;
 
 }
 
@@ -145,9 +139,9 @@ void main() {
 		result += calcDirLight(dirLights[i], norm);
 	}
 
-	//for(int i = 0; i < NR_POINT_LIGHTS; i++) {
-	//	result += calcPointLight(pointLights[i], norm);
-	//}
+	for(int i = 0; i < pointLightCount; i++) {
+		result += calcPointLight(pointLights[i], norm);
+	}
 
 	//result += calcSpotLight(spotLight, norm);
 

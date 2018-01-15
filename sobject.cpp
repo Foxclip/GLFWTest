@@ -76,7 +76,7 @@ Cube::Cube(float x, float y, float z, float scale, unsigned int VBO, Material ma
 
 Cube::Cube(glm::vec3 pos, float scale, unsigned int VBO, Material material): Cube(pos.x, pos.y, pos.z, scale, VBO, material) {}
 
-void Cube::render(glm::mat4 pView, glm::mat4 pProjection, std::vector<DirectionalLight> dirLights) {
+void Cube::render(glm::mat4 pView, glm::mat4 pProjection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights) {
   
     material.getShader().use();
     material.getShader().setMat4("view", pView);
@@ -91,6 +91,9 @@ void Cube::render(glm::mat4 pView, glm::mat4 pProjection, std::vector<Directiona
 
     for(int i = 0; i < dirLights.size(); i++) {
         material.getShader().setVec3("dirLights["+std::to_string(i)+"].direction", glm::vec3(pView * glm::vec4(dirLights[i].direction, 0.0f)));
+    }
+    for(int i = 0; i < pointLights.size(); i++) {
+        material.getShader().setVec3("pointLights["+std::to_string(i)+"].position", glm::vec3(pView * glm::vec4(pointLights[i].position, 1.0f)));
     }
     //material.getShader().setVec3("camera.position", glm::vec3(pView * glm::vec4(cameraPos, 1.0f)));
 

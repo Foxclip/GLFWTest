@@ -19,6 +19,7 @@ Camera camera(0.0f, 0.0f, 4.0f, 0.0f, 1.0f, 0.0f);
 
 std::vector<Cube> cubes;
 std::vector<DirectionalLight> dirLights;
+std::vector<PointLight> pointLights;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -140,12 +141,15 @@ void initCubes() {
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
     };
 
-    glm::vec3 lightPos(-0.8f, 1.5f, 1.0f);
-
-    DirectionalLight dirLightLeft = {1.0f, glm::vec3(0.5f, 0.5f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
-    DirectionalLight dirLightRight = {0.5f, glm::vec3(1.0f, 0.5f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.2f, 0.2f, 0.2f)};
+    DirectionalLight dirLightLeft = {1.0f, glm::vec3(0.5f, 0.5f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f)};
+    DirectionalLight dirLightRight = {0.5f, glm::vec3(1.0f, 0.5f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f)};
     dirLights.push_back(dirLightLeft);
     dirLights.push_back(dirLightRight);
+
+    PointLight pointLight1 = {5.0f, glm::vec3(1.0f, 0.5f, 0.5f), glm::vec3(-0.8f, 1.5f, 1.0f), 1.0f, 1.0f, 1.0f, glm::vec3(0.0f)};
+    PointLight pointLight2 = {10.0f, glm::vec3(1.0f, 1.0f, 0.2f), glm::vec3(-1.0f, 1.5f, -10.0f), 1.0f, 1.0f, 1.0f, glm::vec3(0.0f)};
+    pointLights.push_back(pointLight1);
+    pointLights.push_back(pointLight2);
 
     unsigned int VBO;
     glGenBuffers(1, &VBO);
@@ -167,6 +171,17 @@ void initCubes() {
         lightingShader.setFloat("dirLights["+std::to_string(i)+"].intensity", dirLights[i].intensity);
         lightingShader.setVec3("dirLights["+std::to_string(i)+"].color", dirLights[i].color);
         lightingShader.setVec3("dirLights["+std::to_string(i)+"].ambient", dirLights[i].ambient);
+    }
+
+    lightingShader.setInt("pointLightCount", pointLights.size());
+    for(int i = 0; i < pointLights.size(); i++) {
+        lightingShader.setFloat("pointLights["+std::to_string(i)+"].intensity", pointLights[i].intensity);
+        lightingShader.setVec3("pointLights["+std::to_string(i)+"].color", pointLights[i].color);
+        lightingShader.setVec3("pointLights["+std::to_string(i)+"].position", pointLights[i].position);
+        lightingShader.setFloat("pointLights["+std::to_string(i)+"].constant", pointLights[i].constant);
+        lightingShader.setFloat("pointLights["+std::to_string(i)+"].linear", pointLights[i].linear);
+        lightingShader.setFloat("pointLights["+std::to_string(i)+"].quadratic", pointLights[i].quadratic);
+        lightingShader.setVec3("pointLights["+std::to_string(i)+"].ambient", pointLights[i].ambient);
     }
 
     //lightingShader.setFloat("dirLight.intensity", 1.0f);
@@ -234,7 +249,7 @@ void render() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for(Cube cube: cubes) {
-        cube.render(view, projection, dirLights);
+        cube.render(view, projection, dirLights, pointLights);
     }
 
     glfwSwapBuffers(window);

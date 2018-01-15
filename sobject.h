@@ -36,11 +36,21 @@ struct DirectionalLight {
     glm::vec3 ambient;
 };
 
+struct PointLight {
+    float intensity;
+    glm::vec3 color;
+    glm::vec3 position;
+    float constant;
+    float linear;
+    float quadratic;
+    glm::vec3 ambient;
+};
+
 class Cube {
 public:
     Cube(float x, float y, float z, float scale, unsigned int VBO, Material material);
     Cube(glm::vec3 pos, float scale, unsigned int VBO, Material material);
-    void render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights);
+    void render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights);
     glm::vec3 getPosition();
     void setPosition(glm::vec3 position);
     void setRotation(float angle, glm::vec3 axis);
