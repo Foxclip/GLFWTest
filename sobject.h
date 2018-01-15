@@ -33,7 +33,7 @@ class Cube {
 public:
     Cube(float x, float y, float z, float scale, unsigned int VBO, Material material);
     Cube(glm::vec3 pos, float scale, unsigned int VBO, Material material);
-    void render(glm::mat4 view, glm::mat4 projection, glm::vec3 lightPos);
+    void render(glm::mat4 view, glm::mat4 projection, glm::vec3 lightPos, glm::vec3 lightDir);
     glm::vec3 getPosition();
     void setPosition(glm::vec3 position);
     void setRotation(float angle, glm::vec3 axis);

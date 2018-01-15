@@ -164,8 +164,10 @@ void initCubes() {
     lightingShader.setFloat("light.constant", 1.0f);
     lightingShader.setFloat("light.linear", 1.0f);
     lightingShader.setFloat("light.quadratic", 1.0f);
-    lightingShader.setVec3("light.position", lightPos);
+    //lightingShader.setVec3("light.position", lightPos);
     lightingShader.setFloat("light.intensity", 30);
+    lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+    lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
     Material lightingMaterial(lightingShader, {containerDiffuse, containerSpecular});
 
     Shader lampShader("plain.vert", "lamp.frag", "Lamp");
@@ -218,7 +220,7 @@ void render() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for(Cube cube: cubes) {
-        cube.render(view, projection, cubes[sceneLightIndex].getPosition());
+        cube.render(view, projection, camera.cameraPosition, camera.cameraFront);
     }
 
     glfwSwapBuffers(window);
