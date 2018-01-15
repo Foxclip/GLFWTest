@@ -76,7 +76,7 @@ Cube::Cube(float x, float y, float z, float scale, unsigned int VBO, Material ma
 
 Cube::Cube(glm::vec3 pos, float scale, unsigned int VBO, Material material): Cube(pos.x, pos.y, pos.z, scale, VBO, material) {}
 
-void Cube::render(glm::mat4 pView, glm::mat4 pProjection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights) {
+void Cube::render(glm::mat4 pView, glm::mat4 pProjection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, SpotLight spotLight) {
   
     material.getShader().use();
     material.getShader().setMat4("view", pView);
@@ -94,7 +94,9 @@ void Cube::render(glm::mat4 pView, glm::mat4 pProjection, std::vector<Directiona
     }
     for(int i = 0; i < pointLights.size(); i++) {
         material.getShader().setVec3("pointLights["+std::to_string(i)+"].position", glm::vec3(pView * glm::vec4(pointLights[i].position, 1.0f)));
-    }
+    
+    material.getShader().setVec3("spotLight.direction", glm::vec3(pView * glm::vec4(spotLight.direction, 0.0f)));}
+    material.getShader().setVec3("spotLight.position", glm::vec3(pView * glm::vec4(spotLight.position, 1.0f)));
     //material.getShader().setVec3("camera.position", glm::vec3(pView * glm::vec4(cameraPos, 1.0f)));
 
     material.setTextures();

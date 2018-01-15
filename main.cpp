@@ -20,6 +20,7 @@ Camera camera(0.0f, 0.0f, 4.0f, 0.0f, 1.0f, 0.0f);
 std::vector<Cube> cubes;
 std::vector<DirectionalLight> dirLights;
 std::vector<PointLight> pointLights;
+SpotLight spotLight;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -151,6 +152,8 @@ void initCubes() {
     pointLights.push_back(pointLight1);
     pointLights.push_back(pointLight2);
 
+    spotLight = {5.0f, glm::vec3(1.0f), camera.cameraPosition, camera.cameraFront, 1.0f, 1.0f, 1.0f, glm::vec3(0.2f), glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(17.5f))};
+
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -184,20 +187,17 @@ void initCubes() {
         lightingShader.setVec3("pointLights["+std::to_string(i)+"].ambient", pointLights[i].ambient);
     }
 
-    //lightingShader.setFloat("dirLight.intensity", 1.0f);
-    //lightingShader.setVec3("dirLight.direction", 0.0f, -1.0f, 0.0f);
-    //lightingShader.setVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
+    lightingShader.setFloat("spotLight.intensity", spotLight.intensity);
+    lightingShader.setVec3("spotLight.color", spotLight.color);
+    lightingShader.setVec3("spotLight.position", spotLight.position);
+    lightingShader.setVec3("spotLight.direction", spotLight.direction);
+    lightingShader.setFloat("spotLight.constant", spotLight.constant);
+    lightingShader.setFloat("spotLight.linear", spotLight.linear);
+    lightingShader.setFloat("spotLight.quadratic", spotLight.quadratic);
+    lightingShader.setVec3("spotLight.ambient", spotLight.ambient);
+    lightingShader.setFloat("spotLight.cutOff", spotLight.cutOff);
+    lightingShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
 
-    //lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-    //lightingShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
-    //lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-    //lightingShader.setFloat("light.constant", 1.0f);
-    //lightingShader.setFloat("light.linear", 1.0f);
-    //lightingShader.setFloat("light.quadratic", 1.0f);
-    ////lightingShader.setVec3("light.position", lightPos);
-    //lightingShader.setFloat("light.intensity", 30);
-    //lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-    //lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
     Material lightingMaterial(lightingShader, {containerDiffuse, containerSpecular});
 
     Shader lampShader("plain.vert", "lamp.frag", "Lamp");
@@ -239,6 +239,9 @@ void processPhysics() {
         cubes[i].setRotation(angle, glm::vec3(1.0f, 0.3f, 0.5f));
     }
 
+    spotLight.position = camera.cameraPosition;
+    spotLight.direction = camera.cameraFront;
+
 }
 
 void render() {
@@ -249,7 +252,7 @@ void render() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for(Cube cube: cubes) {
-        cube.render(view, projection, dirLights, pointLights);
+        cube.render(view, projection, dirLights, pointLights, spotLight);
     }
 
     glfwSwapBuffers(window);
