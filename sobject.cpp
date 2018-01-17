@@ -50,33 +50,22 @@ void Material::setTextures() {
 }
 
 
-Cube::Cube(float x, float y, float z, float scale, unsigned int VBO, Material material) {
+Mesh::Mesh(float x, float y, float z, float scale, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices) {
 
     position = {x, y, z};
     this->scale = scale;
 
     this->material = material;
+    this->vertices = vertices;
+    this->indices = indices;
 
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(3*sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(6*sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    setupMesh();
 
 }
 
-Cube::Cube(glm::vec3 pos, float scale, unsigned int VBO, Material material): Cube(pos.x, pos.y, pos.z, scale, VBO, material) {}
+Mesh::Mesh(glm::vec3 pos, float scale, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices): Mesh(pos.x, pos.y, pos.z, scale, material, vertices, indices) {}
 
-void Cube::render(glm::mat4 pView, glm::mat4 pProjection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, SpotLight spotLight) {
+void Mesh::render(glm::mat4 pView, glm::mat4 pProjection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, SpotLight spotLight) {
   
     material.getShader().use();
     material.getShader().setMat4("view", pView);
@@ -102,26 +91,51 @@ void Cube::render(glm::mat4 pView, glm::mat4 pProjection, std::vector<Directiona
     material.setTextures();
 
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    //glBindVertexArray(0);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 
 }
 
-glm::vec3 Cube::getPosition() {
+glm::vec3 Mesh::getPosition() {
     return position;
 }
 
-void Cube::setPosition(glm::vec3 position) {
+void Mesh::setPosition(glm::vec3 position) {
     this->position = position;
 }
 
-void Cube::setRotation(float angle, glm::vec3 axis) {
+void Mesh::setRotation(float angle, glm::vec3 axis) {
     this->angle = angle;
     this->axis = axis;
 }
 
-Material Cube::getMaterial() {
+Material Mesh::getMaterial() {
     return material;
+}
+
+void Mesh::setupMesh() {
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+
 }
 
 Texture::Texture(std::string slot, std::string filename) {
