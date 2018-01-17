@@ -3,6 +3,9 @@
 #include <vector>
 #include "stb_image.h"
 #include "shader.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 struct Vertex {
     glm::vec3 Position;
@@ -15,13 +18,16 @@ unsigned int loadTexture(std::string filename, GLenum edge = GL_REPEAT, GLenum i
 class Texture {
 public:
     Texture() {}
-    Texture(std::string slot, std::string filename);
-    std::string slot;
+    Texture(std::string typeStr, std::string filename);
+    std::string typeStr;
+    std::string path;
     unsigned int getId();
 
 private:
     unsigned int id;
 };
+
+static std::vector<Texture> loaded_textures;
 
 class Material {
 public:
@@ -87,5 +93,24 @@ private:
     Material material;
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
+
+};
+
+class Model {
+public:
+    Model(char *path, Shader shader);
+    void render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights,  SpotLight spotLight);
+
+private:
+
+    Shader shader;
+
+    std::vector<Mesh> meshes;
+    std::string directory;
+    void loadModel(std::string path);
+    void processNode(aiNode *node, const aiScene *scene);
+    Mesh processMesh(aiMesh *mesh, const aiScene *scene);
+    std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName);
+
 
 };

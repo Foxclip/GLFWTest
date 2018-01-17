@@ -18,6 +18,7 @@ bool firstMouse = true;
 Camera camera(0.0f, 0.0f, 4.0f, 0.0f, 1.0f, 0.0f);
 
 std::vector<Mesh> cubes;
+std::vector<Model> models;
 std::vector<DirectionalLight> dirLights;
 std::vector<PointLight> pointLights;
 SpotLight spotLight;
@@ -166,7 +167,7 @@ void initCubes() {
     lightingShader.use();
 
     lightingShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-    lightingShader.setFloat("material.shininess", 8.0f);
+    lightingShader.setFloat("material.shininess", 32.0f);
 
     lightingShader.setInt("dirLightCount", dirLights.size());
     for(int i = 0; i < dirLights.size(); i++) {
@@ -215,10 +216,13 @@ void initCubes() {
     glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
-    for(glm::vec3 pos: cubePositions) {
-        Mesh newMesh(pos, 1.0f, lightingMaterial, cubeVertices, cubeIndices);
-        cubes.push_back(newMesh);
-    }
+    //for(glm::vec3 pos: cubePositions) {
+    //    Mesh newMesh(pos, 0.2f, lightingMaterial, cubeVertices, cubeIndices);
+    //    cubes.push_back(newMesh);
+    //}
+
+    Model nanosuit("nanosuit/nanosuit.obj", lightingShader);
+    models.push_back(nanosuit);
 
     //Cube mainCube(glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, VBO, lightingMaterial);
     //cubes.push_back(mainCube);
@@ -233,10 +237,10 @@ void processPhysics() {
     //double radius = 1.0;
     //cubes[sceneLightIndex].setPosition(glm::vec3(cos(time)*radius, 0.0f, sin(time)*radius));
 
-    for(int i = 0; i < 10; i++) {
-        float angle = 20.0f * i * glfwGetTime();
-        cubes[i].setRotation(angle, glm::vec3(1.0f, 0.3f, 0.5f));
-    }
+    //for(int i = 0; i < 10; i++) {
+    //    float angle = 20.0f * i * glfwGetTime();
+    //    cubes[i].setRotation(angle, glm::vec3(1.0f, 0.3f, 0.5f));
+    //}
 
     spotLight.position = camera.cameraPosition;
     spotLight.direction = camera.cameraFront;
@@ -250,8 +254,11 @@ void render() {
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for(Mesh cube: cubes) {
-        cube.render(view, projection, dirLights, pointLights, spotLight);
+    //for(Mesh cube: cubes) {
+    //    cube.render(view, projection, dirLights, pointLights, spotLight);
+    //}
+    for(Model model: models) {
+        model.render(view, projection, dirLights, pointLights, spotLight);
     }
 
     glfwSwapBuffers(window);

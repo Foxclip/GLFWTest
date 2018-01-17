@@ -15,7 +15,7 @@ unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cout << "Failed to load texture\n";
+        std::cout << "Failed to load texture " << filename << "\n";
     }
     stbi_image_free(data);
     return texture;
@@ -28,7 +28,7 @@ Material::Material(Shader shader, std::vector<Texture> textures) {
 
     shader.use();
     for(int i = 0; i < textures.size(); i++) {
-        shader.setInt(textures[i].slot, i);
+        shader.setInt(textures[i].typeStr, i);
     }
 
 }
@@ -59,6 +59,9 @@ Mesh::Mesh(float x, float y, float z, float scale, Material material, std::vecto
     this->vertices = vertices;
     this->indices = indices;
 
+    angle = 0.0f;
+    axis = glm::vec3(0.0f, 1.0f, 0.0f);
+
     setupMesh();
 
 }
@@ -82,9 +85,10 @@ void Mesh::render(glm::mat4 pView, glm::mat4 pProjection, std::vector<Directiona
         material.getShader().setVec3("dirLights["+std::to_string(i)+"].direction", glm::vec3(pView * glm::vec4(dirLights[i].direction, 0.0f)));
     }
     for(int i = 0; i < pointLights.size(); i++) {
-        material.getShader().setVec3("pointLights["+std::to_string(i)+"].position", glm::vec3(pView * glm::vec4(pointLights[i].position, 1.0f)));
-    
-    material.getShader().setVec3("spotLight.direction", glm::vec3(pView * glm::vec4(spotLight.direction, 0.0f)));}
+        material.getShader().setVec3("pointLights[" + std::to_string(i) + "].position", glm::vec3(pView * glm::vec4(pointLights[i].position, 1.0f)));
+    }
+
+    material.getShader().setVec3("spotLight.direction", glm::vec3(pView * glm::vec4(spotLight.direction, 0.0f)));
     material.getShader().setVec3("spotLight.position", glm::vec3(pView * glm::vec4(spotLight.position, 1.0f)));
     //material.getShader().setVec3("camera.position", glm::vec3(pView * glm::vec4(cameraPos, 1.0f)));
 
@@ -138,11 +142,115 @@ void Mesh::setupMesh() {
 
 }
 
-Texture::Texture(std::string slot, std::string filename) {
-    this->slot = slot;
+Texture::Texture(std::string typeStr, std::string filename) {
+    this->typeStr = typeStr;
     id = loadTexture(filename);
 }
 
 unsigned int Texture::getId() {
     return id;
+}
+
+Model::Model(char *path, Shader shader) {
+    this->shader = shader;
+    loadModel(path);
+}
+
+void Model::render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights,  SpotLight spotLight) {
+    for(int i = 0; i < meshes.size(); i++) {
+        meshes[i].render(view, projection, dirLights, pointLights, spotLight);
+    }
+}
+
+void Model::loadModel(std::string path) {
+    Assimp::Importer importer;
+    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        std::cout << "Failed to load model " << path << "\n" << importer.GetErrorString() << "\n";
+        return;
+    }
+    directory = path.substr(0, path.find_last_of('/'));
+    processNode(scene->mRootNode, scene);
+}
+
+void Model::processNode(aiNode * node, const aiScene * scene) {
+    for(int i = 0; i < node->mNumMeshes; i++) {
+        aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
+        meshes.push_back(processMesh(mesh, scene));
+    }
+    for(int i = 0; i < node->mNumChildren; i++) {
+        processNode(node->mChildren[i], scene);
+    }
+}
+
+Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene) {
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<Texture> textures;
+
+    for(int i = 0; i < mesh->mNumVertices; i++) {
+
+        Vertex vertex;
+
+        glm::vec3 pos;
+        pos.x = mesh->mVertices[i].x;
+        pos.y = mesh->mVertices[i].y;
+        pos.z = mesh->mVertices[i].z;
+        vertex.Position = pos;
+
+        glm::vec3 normal;
+        normal.x = mesh->mNormals[i].x;
+        normal.y = mesh->mNormals[i].y;
+        normal.z = mesh->mNormals[i].z;
+        vertex.Normal = normal;
+
+        if(mesh->mTextureCoords[0]) {
+            glm::vec2 tc;
+            tc.x = mesh->mTextureCoords[0][i].x;
+            tc.y = mesh->mTextureCoords[0][i].y;
+            vertex.TexCoords = tc;
+        } else {
+            vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+        }
+
+        vertices.push_back(vertex);
+    }
+
+    for(int i = 0; i < mesh->mNumFaces; i++) {
+        aiFace face = mesh->mFaces[i];
+        for(int j = 0; j < face.mNumIndices; j++) {
+            indices.push_back(face.mIndices[j]);
+        }
+    }
+
+    if(mesh->mMaterialIndex >= 0) {
+        aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "material.diffuse");
+        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "material.specular");
+        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+    }
+
+    return Mesh(0.0f, 0.0f, 0.0f, 0.1f, Material(shader, textures), vertices, indices);
+
+}
+
+std::vector<Texture> Model::loadMaterialTextures(aiMaterial * mat, aiTextureType type, std::string typeName) {
+    std::vector<Texture> textures;
+    for(int i = 0; i < mat->GetTextureCount(type); i++) {
+        aiString tex_path;
+        mat->GetTexture(type, i, &tex_path);
+        bool skip = false;
+        for(int j = 0; j < loaded_textures.size(); j++) {
+            if(std::strcmp(loaded_textures[j].path.c_str(), tex_path.C_Str()) == 0) {
+                textures.push_back(loaded_textures[j]);
+                skip = true;
+                break;
+            }
+        }
+        if(!skip) {
+            textures.push_back(Texture(typeName, directory + "/" + std::string(tex_path.C_Str())));
+        }
+    }
+    return textures;
 }
