@@ -14,7 +14,9 @@ enum Direction {
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+    UP,
+    DOWN
 };
 
 class Camera {
@@ -77,19 +79,25 @@ inline glm::mat4 Camera::getViewMatrix() {
 
 inline void Camera::processKeyboard(Direction direction, float deltaTime) {
     float velocity = movementSpeed * deltaTime;
-    glm::vec3 movementDirectionFront = glm::normalize(glm::vec3(cameraFront.x, 0, cameraFront.z));
-    glm::vec3 movementDirectionRight = glm::normalize(glm::vec3(cameraRight.x, 0, cameraRight.z));
+    //glm::vec3 movementDirectionFront = glm::normalize(glm::vec3(cameraFront.x, 0, cameraFront.z));
+    //glm::vec3 movementDirectionRight = glm::normalize(glm::vec3(cameraRight.x, 0, cameraRight.z));
     if(direction == FORWARD) {
-        cameraPosition += movementDirectionFront * velocity;
+        cameraPosition += cameraFront * velocity;
     }
     if(direction == BACKWARD) {
-        cameraPosition -= movementDirectionFront * velocity;
+        cameraPosition -= cameraFront * velocity;
     }
     if(direction == LEFT) {
-        cameraPosition -= movementDirectionRight * velocity;
+        cameraPosition -= cameraRight * velocity;
     }
     if(direction == RIGHT) {
-        cameraPosition += movementDirectionRight * velocity;
+        cameraPosition += cameraRight * velocity;
+    }
+    if(direction == UP) {
+        cameraPosition += cameraUp * velocity;
+    }
+    if(direction == DOWN) {
+        cameraPosition -= cameraUp * velocity;
     }
 }
 

@@ -93,6 +93,12 @@ void processInput(GLFWwindow* window) {
     if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         camera.processKeyboard(RIGHT, deltaTime);
     }
+    if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+        camera.processKeyboard(UP, deltaTime);
+    }
+    if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+        camera.processKeyboard(DOWN, deltaTime);
+    }
 
 }
 
@@ -147,17 +153,17 @@ void initCubes() {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
     };
 
-    DirectionalLight dirLightLeft = {1.0f, glm::vec3(0.5f, 0.5f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f)};
+    DirectionalLight dirLightLeft = {10.0f, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f)};
     DirectionalLight dirLightRight = {0.5f, glm::vec3(1.0f, 0.5f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f)};
     dirLights.push_back(dirLightLeft);
-    dirLights.push_back(dirLightRight);
+    //dirLights.push_back(dirLightRight);
 
     PointLight pointLight1 = {5.0f, glm::vec3(1.0f, 0.5f, 0.5f), glm::vec3(-0.8f, 1.5f, 1.0f), 1.0f, 1.0f, 1.0f, glm::vec3(0.0f)};
     PointLight pointLight2 = {10.0f, glm::vec3(1.0f, 1.0f, 0.2f), glm::vec3(-1.0f, 1.5f, -10.0f), 1.0f, 1.0f, 1.0f, glm::vec3(0.0f)};
-    pointLights.push_back(pointLight1);
-    pointLights.push_back(pointLight2);
+    //pointLights.push_back(pointLight1);
+    //pointLights.push_back(pointLight2);
 
-    spotLight = {5.0f, glm::vec3(1.0f), camera.cameraPosition, camera.cameraFront, 1.0f, 1.0f, 1.0f, glm::vec3(0.2f), glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(17.5f))};
+    spotLight = {0.0f, glm::vec3(1.0f), camera.cameraPosition, camera.cameraFront, 1.0f, 1.0f, 1.0f, glm::vec3(0.2f), glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(17.5f))};
 
     Texture containerDiffuse("material.diffuse", "container2.png");
     Texture containerSpecular("material.specular", "container2_specular.png");
