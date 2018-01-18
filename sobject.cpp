@@ -2,7 +2,7 @@
 
 unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation) {
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true);
+    //stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
     unsigned int texture;
     glGenTextures(1, &texture);
@@ -209,7 +209,8 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene) {
             tc.x = mesh->mTextureCoords[0][i].x;
             tc.y = mesh->mTextureCoords[0][i].y;
             vertex.TexCoords = tc;
-        } else {
+        } 
+        else {
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);
         }
 
@@ -231,7 +232,7 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene) {
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     }
 
-    return Mesh(0.0f, 0.0f, 0.0f, 0.1f, Material(shader, textures), vertices, indices);
+    return Mesh(0.0f, 0.0f, 0.0f, 1.0f, Material(shader, textures), vertices, indices);
 
 }
 
