@@ -6,7 +6,8 @@
 
 const float D_YAW = -90.0f;
 const float D_PITCH = 0.0f;
-const float D_SPEED = 1.5f;
+const float D_SLOW_SPEED = 4.0f;
+const float D_FAST_SPEED = D_SLOW_SPEED * 4.0f;
 const float D_SENSITIVITY = 0.1f;
 const float D_FOV = 60.0f;
 
@@ -48,7 +49,7 @@ private:
 
 };
 
-inline Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch): cameraFront(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(D_SPEED), mouseSensitivity(D_SENSITIVITY), fov(D_FOV) {
+inline Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch): cameraFront(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(D_SLOW_SPEED), mouseSensitivity(D_SENSITIVITY), fov(D_FOV) {
     this->cameraPosition = position;
     this->worldUp = up;
     this->yaw = yaw;
@@ -56,7 +57,7 @@ inline Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch):
     updateCameraVectors();
 }
 
-inline Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch): cameraFront(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(D_SPEED), mouseSensitivity(D_SENSITIVITY), fov(D_FOV) {
+inline Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch): cameraFront(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(D_SLOW_SPEED), mouseSensitivity(D_SENSITIVITY), fov(D_FOV) {
     cameraPosition = glm::vec3(posX, posY, posZ);
     worldUp = glm::vec3(upX, upY, upZ);
     this->yaw = yaw;

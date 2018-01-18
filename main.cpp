@@ -99,6 +99,12 @@ void processInput(GLFWwindow* window) {
     if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
         camera.processKeyboard(DOWN, deltaTime);
     }
+    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        camera.movementSpeed = D_FAST_SPEED;
+    }
+    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE) {
+        camera.movementSpeed = D_SLOW_SPEED;
+    }
 
 }
 
