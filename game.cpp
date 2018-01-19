@@ -16,7 +16,7 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 
 Game::Game() {
     initGLFW();
-    initCubes();
+    initShaders();
 }
 
 Game::~Game() {
@@ -26,16 +26,50 @@ Game::~Game() {
 void Game::addDirectionalLight(float intensity, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient) {
     DirectionalLight newDirectionalLight = {intensity, color, direction, ambient};
     dirLights.push_back(newDirectionalLight);
+    lightingShader.setInt("dirLightCount", dirLights.size());
+    int index = dirLights.size() - 1;
+    lightingShader.use();
+    lightingShader.setFloat("dirLights["+std::to_string(index)+"].intensity", dirLights[index].intensity);
+    lightingShader.setVec3("dirLights["+std::to_string(index)+"].color", dirLights[index].color);
+    lightingShader.setVec3("dirLights["+std::to_string(index)+"].ambient", dirLights[index].ambient);
 }
 
 void Game::addPointLight(float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient) {
     PointLight newPointLight = {intensity, color, position, constant, linear, quadratic, ambient};
     pointLights.push_back(newPointLight);
+    lightingShader.setInt("pointLightCount", pointLights.size());
+    int index = pointLights.size() - 1;
+    lightingShader.use();
+    lightingShader.setFloat("pointLights["+std::to_string(index)+"].intensity", pointLights[index].intensity);
+    lightingShader.setVec3("pointLights["+std::to_string(index)+"].color", pointLights[index].color);
+    lightingShader.setVec3("pointLights["+std::to_string(index)+"].position", pointLights[index].position);
+    lightingShader.setFloat("pointLights["+std::to_string(index)+"].constant", pointLights[index].constant);
+    lightingShader.setFloat("pointLights["+std::to_string(index)+"].linear", pointLights[index].linear);
+    lightingShader.setFloat("pointLights["+std::to_string(index)+"].quadratic", pointLights[index].quadratic);
+    lightingShader.setVec3("pointLights["+std::to_string(index)+"].ambient", pointLights[index].ambient);
 }
 
 void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff) {
     SpotLight newSpotLight = {intensity, color, position, direction, constant, linear, quadratic, ambient, cutOff, outerCutOff};
     spotLights.push_back(newSpotLight);
+    lightingShader.setInt("spotLightCount", spotLights.size());
+    int index = spotLights.size();
+    lightingShader.use();
+    lightingShader.setFloat("spotLights["+std::to_string(index)+"].intensity", spotLights[index].intensity);
+    lightingShader.setVec3("spotLights["+std::to_string(index)+"].color", spotLights[index].color);
+    lightingShader.setVec3("spotLights["+std::to_string(index)+"].position", spotLights[index].position);
+    lightingShader.setVec3("spotLights["+std::to_string(index)+"].direction", spotLights[index].direction);
+    lightingShader.setFloat("spotLights["+std::to_string(index)+"].constant", spotLights[index].constant);
+    lightingShader.setFloat("spotLights["+std::to_string(index)+"].linear", spotLights[index].linear);
+    lightingShader.setFloat("spotLights["+std::to_string(index)+"].quadratic", spotLights[index].quadratic);
+    lightingShader.setVec3("spotLights["+std::to_string(index)+"].ambient", spotLights[index].ambient);
+    lightingShader.setFloat("spotLights["+std::to_string(index)+"].cutOff", spotLights[index].cutOff);
+    lightingShader.setFloat("spotLights["+std::to_string(index)+"].outerCutOff", spotLights[index].outerCutOff);
+}
+
+void Game::addModel(char *path) {
+    Model model(path, lightingShader);
+    models.push_back(model);
 }
 
 void Game::frmbuf_size_cb(GLFWwindow * window, int width, int height) {
@@ -121,55 +155,17 @@ void Game::processInput(GLFWwindow * window) {
     }
 }
 
-void Game::initCubes() {
-    addDirectionalLight(1.0f, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(1.0f));
-    addDirectionalLight(0.5f, glm::vec3(1.0f, 0.5f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
-
-    addPointLight(5.0f, glm::vec3(1.0f, 0.5f, 0.5f), glm::vec3(-0.8f, 1.5f, 1.0f), 1.0f, 1.0f, 1.0f, glm::vec3(0.0f));
-    addPointLight(10.0f, glm::vec3(1.0f, 1.0f, 0.2f), glm::vec3(-1.0f, 1.5f, -10.0f), 1.0f, 1.0f, 1.0f, glm::vec3(0.0f));
-
-    Shader lightingShader("plain.vert", "color.frag", "Lighting");
+void Game::initShaders() {
+    lightingShader = Shader("plain.vert", "color.frag", "Lighting");
     lightingShader.use();
-
     lightingShader.setFloat("material.shininess", 32.0f);
-
-    lightingShader.setInt("dirLightCount", dirLights.size());
-    for(int i = 0; i < dirLights.size(); i++) {
-        lightingShader.setFloat("dirLights["+std::to_string(i)+"].intensity", dirLights[i].intensity);
-        lightingShader.setVec3("dirLights["+std::to_string(i)+"].color", dirLights[i].color);
-        lightingShader.setVec3("dirLights["+std::to_string(i)+"].ambient", dirLights[i].ambient);
-    }
-
-    lightingShader.setInt("pointLightCount", pointLights.size());
-    for(int i = 0; i < pointLights.size(); i++) {
-        lightingShader.setFloat("pointLights["+std::to_string(i)+"].intensity", pointLights[i].intensity);
-        lightingShader.setVec3("pointLights["+std::to_string(i)+"].color", pointLights[i].color);
-        lightingShader.setVec3("pointLights["+std::to_string(i)+"].position", pointLights[i].position);
-        lightingShader.setFloat("pointLights["+std::to_string(i)+"].constant", pointLights[i].constant);
-        lightingShader.setFloat("pointLights["+std::to_string(i)+"].linear", pointLights[i].linear);
-        lightingShader.setFloat("pointLights["+std::to_string(i)+"].quadratic", pointLights[i].quadratic);
-        lightingShader.setVec3("pointLights["+std::to_string(i)+"].ambient", pointLights[i].ambient);
-    }
-
-    lightingShader.setInt("spotLightCount", spotLights.size());
-    for(int i = 0; i < spotLights.size(); i++) {
-        lightingShader.setFloat("spotLights["+std::to_string(i)+"].intensity", spotLights[i].intensity);
-        lightingShader.setVec3("spotLights["+std::to_string(i)+"].color", spotLights[i].color);
-        lightingShader.setVec3("spotLights["+std::to_string(i)+"].position", spotLights[i].position);
-        lightingShader.setVec3("spotLights["+std::to_string(i)+"].direction", spotLights[i].direction);
-        lightingShader.setFloat("spotLights["+std::to_string(i)+"].constant", spotLights[i].constant);
-        lightingShader.setFloat("spotLights["+std::to_string(i)+"].linear", spotLights[i].linear);
-        lightingShader.setFloat("spotLights["+std::to_string(i)+"].quadratic", spotLights[i].quadratic);
-        lightingShader.setVec3("spotLights["+std::to_string(i)+"].ambient", spotLights[i].ambient);
-        lightingShader.setFloat("spotLights["+std::to_string(i)+"].cutOff", spotLights[i].cutOff);
-        lightingShader.setFloat("spotLights["+std::to_string(i)+"].outerCutOff", spotLights[i].outerCutOff);
-    }
-
-    Model nanosuit("models/nanosuit/nanosuit.obj", lightingShader);
-    models.push_back(nanosuit);
 }
 
 void Game::processPhysics() {
+
+}
+
+void Game::render() {
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)screenWidth/screenHeight, 0.1f, 100.0f);
 
@@ -183,10 +179,7 @@ void Game::processPhysics() {
     glfwPollEvents();
 }
 
-void Game::render() {
-}
-
-void Game::mainLoop() {
+void Game::start() {
     while(!glfwWindowShouldClose(window)) {
         processInput(window);
         processPhysics();
