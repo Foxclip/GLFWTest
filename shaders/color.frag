@@ -48,6 +48,9 @@ struct SpotLight {
 	float cutOff;
 	float outerCutOff;
 };
+#define MAX_SPOT_LIGHTS 16
+uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
+uniform int spotLightCount;
 
 uniform SpotLight spotLight;
 uniform Material material;
@@ -135,7 +138,9 @@ void main() {
 		result += calcPointLight(pointLights[i], norm);
 	}
 
-	result += calcSpotLight(spotLight, norm);
+	for(int i = 0; i < spotLightCount; i++) {
+		result += calcSpotLight(spotLights[i], norm);
+	}
 
 	FragColor = vec4(result, 1.0);
 }

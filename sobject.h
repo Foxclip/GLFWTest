@@ -75,7 +75,7 @@ class Mesh {
 public:
     Mesh(float x, float y, float z, float scale, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices);
     Mesh(glm::vec3 pos, float scale, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices);
-    void render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights,  SpotLight spotLight);
+    void render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLight);
     glm::vec3 getPosition();
     void setPosition(glm::vec3 position);
     void setRotation(float angle, glm::vec3 axis);
@@ -99,7 +99,7 @@ private:
 class Model {
 public:
     Model(char *path, Shader shader);
-    void render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights,  SpotLight spotLight);
+    void render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLights);
 
 private:
 
