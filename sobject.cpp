@@ -68,12 +68,11 @@ Mesh::Mesh(float x, float y, float z, float scale, Material material, std::vecto
 
 Mesh::Mesh(glm::vec3 pos, float scale, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices): Mesh(pos.x, pos.y, pos.z, scale, material, vertices, indices) {}
 
-void Mesh::render(glm::mat4 pView, glm::mat4 pProjection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLights) {
+void Mesh::render(glm::mat4 model, glm::mat4 pView, glm::mat4 pProjection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLights) {
   
     material.getShader().use();
     material.getShader().setMat4("view", pView);
     material.getShader().setMat4("projection", pProjection);
-    glm::mat4 model;
     model = glm::translate(model, position);
     model = glm::rotate(model, glm::radians(angle), axis);
     model = glm::scale(model, glm::vec3(scale));
@@ -151,14 +150,19 @@ unsigned int Texture::getId() {
     return id;
 }
 
-Model::Model(char *path, Shader shader) {
+Model::Model(char * path, Shader shader, float x, float y, float z) {
     this->shader = shader;
     loadModel(path);
+    position = {x, y, z};
 }
+
+Model::Model(char * path, Shader shader, glm::vec3 pos): Model(path, shader, pos.x, pos.y, pos.z) {}
 
 void Model::render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights,  std::vector<SpotLight> spotLights) {
     for(int i = 0; i < meshes.size(); i++) {
-        meshes[i].render(view, projection, dirLights, pointLights, spotLights);
+        glm::mat4 model;
+        model = glm::translate(model, position);
+        meshes[i].render(model, view, projection, dirLights, pointLights, spotLights);
     }
 }
 
@@ -254,4 +258,17 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial * mat, aiTextureType
         }
     }
     return textures;
+}
+
+glm::vec3 Model::getPosition() {
+    return position;
+}
+
+void Model::setPosition(glm::vec3 position) {
+    this->position = position;
+}
+
+void Model::setRotation(float angle, glm::vec3 axis) {
+    this->angle = angle;
+    this->axis = axis;
 }
