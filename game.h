@@ -32,6 +32,7 @@ private:
     Camera camera = Camera(0.0f, 4.0f, 4.0f, 0.0f, 1.0f, 0.0f);
 
     Shader lightingShader;
+    Shader zShader;
 
     std::vector<Mesh> cubes;
     std::vector<Model> models;

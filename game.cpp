@@ -68,7 +68,7 @@ void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, gl
 }
 
 Model& Game::addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl) {
-    Model model(path, lightingShader, pos, rot, scl);
+    Model model(path, zShader, pos, rot, scl);
     models.push_back(model);
     return models.back();
 }
@@ -125,6 +125,7 @@ void Game::initGLFW() {
     }
 
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
@@ -163,9 +164,13 @@ void Game::processInput(GLFWwindow * window) {
 }
 
 void Game::initShaders() {
+
     lightingShader = Shader("plain.vert", "color.frag", "Lighting");
     lightingShader.use();
     lightingShader.setFloat("material.shininess", 32.0f);
+
+    zShader = Shader("plain.vert", "z.frag", "ZShader");
+
 }
 
 void Game::processPhysics() {
