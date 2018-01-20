@@ -10,6 +10,8 @@ struct Material {
 	sampler2D diffuse;
 	sampler2D specular;
 	//sampler2D emission;
+	bool hasDiffuse;
+	bool hasSpecular;
 	float shininess;
 };
 
@@ -66,7 +68,13 @@ vec3 calcDirLight(DirLight light, vec3 normal) {
 	vec3 reflectDir = reflect(-lightDir, normal);
 	vec3 viewDir = normalize(-FragPos);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-	vec3 specular = spec * vec3(texture(material.specular, TexCoords));
+	vec3 matSpec;
+	if(material.hasSpecular) {
+		matSpec = vec3(texture(material.specular, TexCoords));
+	} else {
+		matSpec = vec3(1.0);
+	}
+	vec3 specular = spec * matSpec;
 
 	return (ambient + diffuse + specular) * light.color * light.intensity;
 

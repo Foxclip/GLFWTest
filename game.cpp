@@ -107,7 +107,8 @@ void Game::initGLFW() {
     const GLFWvidmode* vidmode = glfwGetVideoMode(monitor);
     screenWidth = vidmode->width;
     screenHeight = vidmode->height;
-    window = glfwCreateWindow(screenWidth, screenHeight, "Some window", glfwGetPrimaryMonitor(), NULL);
+    //window = glfwCreateWindow(screenWidth, screenHeight, "Some window", glfwGetPrimaryMonitor(), NULL);
+    window = glfwCreateWindow(screenWidth, screenHeight, "Some window", NULL, NULL);
     if(window == NULL) {
         std::cout << "Failed to create GLFW window" << "\n";
         glfwTerminate();

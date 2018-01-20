@@ -32,13 +32,15 @@ static std::vector<Texture> loaded_textures;
 class Material {
 public:
     Material() {}
-    Material(Shader shader, std::vector<Texture> textures);
+    Material(Shader shader, std::vector<Texture> textures, bool hasDiffuse, bool hasSpecular);
     Shader getShader();
     void setTextures();
 
 private:
     Shader shader;
     std::vector<Texture> textures;
+    bool hasDiffuse = false;
+    bool hasSpecular = false;
 };
 
 struct DirectionalLight {

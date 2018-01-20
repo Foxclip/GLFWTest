@@ -21,7 +21,7 @@ unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation
     return texture;
 }
 
-Material::Material(Shader shader, std::vector<Texture> textures) {
+Material::Material(Shader shader, std::vector<Texture> textures, bool hasDiffuse, bool hasSpecular) {
 
     this->shader = shader;
     this->textures = textures;
@@ -30,6 +30,9 @@ Material::Material(Shader shader, std::vector<Texture> textures) {
     for(int i = 0; i < textures.size(); i++) {
         shader.setInt(textures[i].typeStr, i);
     }
+
+    this->hasDiffuse = hasDiffuse;
+    this->hasSpecular = hasSpecular;
 
 }
 
@@ -47,6 +50,10 @@ void Material::setTextures() {
         glActiveTexture(units[i]);
         glBindTexture(GL_TEXTURE_2D, textures[i].getId());
     }
+
+    shader.setInt("material.hasDiffuse", hasDiffuse);
+    shader.setInt("material.hasSpecular", hasSpecular);
+
 }
 
 
@@ -222,15 +229,24 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene) {
         }
     }
 
+    bool hasDiffuse;
+    bool hasSpecular;
+
     if(mesh->mMaterialIndex >= 0) {
+
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+
         std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "material.diffuse");
+        hasDiffuse = diffuseMaps.size() > 0;
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+
         std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "material.specular");
+        hasSpecular = specularMaps.size() > 0;
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+
     }
 
-    return Mesh(0.0f, 0.0f, 0.0f, 1.0f, Material(shader, textures), vertices, indices);
+    return Mesh(0.0f, 0.0f, 0.0f, 1.0f, Material(shader, textures, hasDiffuse, hasSpecular), vertices, indices);
 
 }
 
