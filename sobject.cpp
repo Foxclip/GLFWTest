@@ -138,6 +138,7 @@ void Mesh::setupMesh() {
 
 Texture::Texture(std::string typeStr, std::string filename) {
     this->typeStr = typeStr;
+    this->path = filename;
     id = loadTexture(filename);
 }
 

@@ -194,18 +194,9 @@ void Game::render() {
     glStencilMask(0xFF);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    //for(Model model: models) {
-    //    model.render(lightingShader, view, projection, dirLights, pointLights, spotLights);
-    //}
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    glStencilFunc(GL_ALWAYS, 1, 0xFF);
-    glStencilMask(0xFF);
-    models[0].render(view, projection, dirLights, pointLights, spotLights);
-
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilMask(0x00);
-    models[1].render(view, projection, dirLights, pointLights, spotLights);
-    models[2].render(view, projection, dirLights, pointLights, spotLights);
+    for(Model model: models) {
+        model.render(view, projection, dirLights, pointLights, spotLights);
+    }
 
     glfwSwapBuffers(window);
     glfwPollEvents();
