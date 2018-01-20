@@ -136,18 +136,19 @@ void Mesh::setupMesh() {
 
 }
 
-Texture::Texture(std::string typeStr, std::string filename) {
+Texture::Texture(std::string typeStr, std::string filename, GLenum edge) {
     this->typeStr = typeStr;
     this->path = filename;
-    id = loadTexture(filename);
+    id = loadTexture(filename, edge);
 }
 
 unsigned int Texture::getId() {
     return id;
 }
 
-Model::Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl) {
+Model::Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge) {
     this->shader = shader;
+    this->edge = edge;
     loadModel(path);
     position = pos;
     ypr = rot;
@@ -262,7 +263,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial * mat, aiTextureType
             }
         }
         if(!skip) {
-            textures.push_back(Texture(typeName, directory + "/" + std::string(tex_path.C_Str())));
+            textures.push_back(Texture(typeName, directory + "/" + std::string(tex_path.C_Str()), edge));
         }
     }
     return textures;

@@ -67,8 +67,8 @@ void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, gl
     lightingShader.setFloat("spotLights["+std::to_string(index)+"].outerCutOff", spotLights[index].outerCutOff);
 }
 
-Model& Game::addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl) {
-    Model model(path, lightingShader, pos, rot, scl);
+Model& Game::addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge) {
+    Model model(path, lightingShader, pos, rot, scl, edge);
     models.push_back(model);
     return models.back();
 }
