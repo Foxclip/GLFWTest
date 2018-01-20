@@ -27,6 +27,8 @@ public:
     void setMat3(const std::string &name, glm::mat3 value) const;
     void setVec3(const std::string &name, float v1, float v2, float v3) const;
     void setVec3(const std::string &name, glm::vec3 value) const;
+    void setVec4(const std::string &name, float v1, float v2, float v3, float v4) const;
+    void setVec4(const std::string &name, glm::vec4 value) const;
 
 private:
     unsigned int shaderProgram;

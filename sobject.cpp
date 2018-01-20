@@ -26,11 +26,6 @@ Material::Material(Shader shader, std::vector<Texture> textures, bool hasDiffuse
     this->shader = shader;
     this->textures = textures;
 
-    shader.use();
-    for(int i = 0; i < textures.size(); i++) {
-        shader.setInt(textures[i].typeStr, i);
-    }
-
     this->hasDiffuse = hasDiffuse;
     this->hasSpecular = hasSpecular;
 
@@ -47,6 +42,7 @@ void Material::setTextures() {
     };
     shader.use();
     for(int i = 0; i < textures.size(); i++) {
+        shader.setInt(textures[i].typeStr, i);
         glActiveTexture(units[i]);
         glBindTexture(GL_TEXTURE_2D, textures[i].getId());
     }
@@ -74,24 +70,25 @@ Mesh::Mesh(glm::vec3 pos, float scale, Material material, std::vector<Vertex> ve
 
 void Mesh::render(glm::mat4 model, glm::mat4 pView, glm::mat4 pProjection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLights) {
   
-    material.getShader().use();
-    material.getShader().setMat4("view", pView);
-    material.getShader().setMat4("projection", pProjection);
+    Shader shader = material.getShader();
+    shader.use();
+    shader.setMat4("view", pView);
+    shader.setMat4("projection", pProjection);
     model = glm::translate(model, position);
     model = glm::scale(model, glm::vec3(scale));
-    material.getShader().setMat4("model", model);
+    shader.setMat4("model", model);
     glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(pView * model)));
-    material.getShader().setMat3("newNormal", normalMatrix);
+    shader.setMat3("newNormal", normalMatrix);
 
     for(int i = 0; i < dirLights.size(); i++) {
-        material.getShader().setVec3("dirLights["+std::to_string(i)+"].direction", glm::vec3(pView * glm::vec4(dirLights[i].direction, 0.0f)));
+        shader.setVec3("dirLights["+std::to_string(i)+"].direction", glm::vec3(pView * glm::vec4(dirLights[i].direction, 0.0f)));
     }
     for(int i = 0; i < pointLights.size(); i++) {
-        material.getShader().setVec3("pointLights[" + std::to_string(i) + "].position", glm::vec3(pView * glm::vec4(pointLights[i].position, 1.0f)));
+        shader.setVec3("pointLights[" + std::to_string(i) + "].position", glm::vec3(pView * glm::vec4(pointLights[i].position, 1.0f)));
     }
     for(int i = 0; i < spotLights.size(); i++) {
-        material.getShader().setVec3("spotLights[" + std::to_string(i) + "].direction", glm::vec3(pView * glm::vec4(spotLights[i].direction, 0.0f)));
-        material.getShader().setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(pView * glm::vec4(spotLights[i].position, 1.0f)));
+        shader.setVec3("spotLights[" + std::to_string(i) + "].direction", glm::vec3(pView * glm::vec4(spotLights[i].direction, 0.0f)));
+        shader.setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(pView * glm::vec4(spotLights[i].position, 1.0f)));
     }
 
     material.setTextures();
@@ -290,4 +287,12 @@ void Model::rotate(float yaw, float pitch, float roll) {
     ypr.x += yaw;
     ypr.y += pitch;
     ypr.z += roll;
+}
+
+glm::vec3 Model::getScale() {
+    return scale;
+}
+
+void Model::setScale(glm::vec3 scale) {
+    this->scale = scale;
 }

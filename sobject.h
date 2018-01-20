@@ -104,6 +104,8 @@ public:
     glm::vec3 getRotation();
     void setRotation(float yaw, float pitch, float roll);
     void rotate(float yaw, float pitch, float roll);
+    glm::vec3 getScale();
+    void setScale(glm::vec3 scale);
 
 private:
 

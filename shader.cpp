@@ -84,3 +84,11 @@ void Shader::setVec3(const std::string &name, float v1, float v2, float v3) cons
 void Shader::setVec3(const std::string & name, glm::vec3 value) const {
     setVec3(name, value.x, value.y, value.z);
 }
+
+void Shader::setVec4(const std::string & name, float v1, float v2, float v3, float v4) const {
+    glUniform4f(glGetUniformLocation(shaderProgram, name.c_str()), v1, v2, v3, v4);
+}
+
+void Shader::setVec4(const std::string & name, glm::vec4 value) const {
+    setVec4(name, value.x, value.y, value.z, value.w);
+}

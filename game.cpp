@@ -68,7 +68,7 @@ void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, gl
 }
 
 Model& Game::addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl) {
-    Model model(path, zShader, pos, rot, scl);
+    Model model(path, lightingShader, pos, rot, scl);
     models.push_back(model);
     return models.back();
 }
@@ -125,7 +125,8 @@ void Game::initGLFW() {
     }
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
@@ -171,6 +172,8 @@ void Game::initShaders() {
 
     zShader = Shader("plain.vert", "z.frag", "ZShader");
 
+    uniformShader = Shader("plain.vert", "uniform.frag", "Uniform");
+
 }
 
 void Game::processPhysics() {
@@ -188,10 +191,21 @@ void Game::render() {
     glm::mat4 projection = glm::perspective(glm::radians(camera.fov), aspectRatio, 0.1f, 100.0f);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for(Model model: models) {
-        model.render(view, projection, dirLights, pointLights, spotLights);
-    }
+    glStencilMask(0xFF);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    //for(Model model: models) {
+    //    model.render(lightingShader, view, projection, dirLights, pointLights, spotLights);
+    //}
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    glStencilMask(0xFF);
+    models[0].render(view, projection, dirLights, pointLights, spotLights);
+
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilMask(0x00);
+    models[1].render(view, projection, dirLights, pointLights, spotLights);
+    models[2].render(view, projection, dirLights, pointLights, spotLights);
 
     glfwSwapBuffers(window);
     glfwPollEvents();

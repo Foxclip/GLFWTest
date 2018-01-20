@@ -33,6 +33,7 @@ private:
 
     Shader lightingShader;
     Shader zShader;
+    Shader uniformShader;
 
     std::vector<Mesh> cubes;
     std::vector<Model> models;
