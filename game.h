@@ -11,7 +11,7 @@ public:
     void addDirectionalLight(float intensity, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient);
     void addPointLight(float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient);
     void addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff);
-    void addModel(char *path, float x, float y, float z);
+    Model& addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl);
 
     void frmbuf_size_cb(GLFWwindow* window, int width, int height);
     void mouseCb(GLFWwindow* window, double xpos, double ypos);
@@ -29,7 +29,7 @@ private:
     float lastY = 300.0f;
     bool firstMouse = true;
 
-    Camera camera = Camera(0.0f, 0.0f, 4.0f, 0.0f, 1.0f, 0.0f);
+    Camera camera = Camera(0.0f, 4.0f, 4.0f, 0.0f, 1.0f, 0.0f);
 
     Shader lightingShader;
 

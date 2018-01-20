@@ -59,9 +59,6 @@ Mesh::Mesh(float x, float y, float z, float scale, Material material, std::vecto
     this->vertices = vertices;
     this->indices = indices;
 
-    angle = 0.0f;
-    axis = glm::vec3(0.0f, 1.0f, 0.0f);
-
     setupMesh();
 
 }
@@ -74,7 +71,6 @@ void Mesh::render(glm::mat4 model, glm::mat4 pView, glm::mat4 pProjection, std::
     material.getShader().setMat4("view", pView);
     material.getShader().setMat4("projection", pProjection);
     model = glm::translate(model, position);
-    model = glm::rotate(model, glm::radians(angle), axis);
     model = glm::scale(model, glm::vec3(scale));
     material.getShader().setMat4("model", model);
     glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(pView * model)));
@@ -105,11 +101,6 @@ glm::vec3 Mesh::getPosition() {
 
 void Mesh::setPosition(glm::vec3 position) {
     this->position = position;
-}
-
-void Mesh::setRotation(float angle, glm::vec3 axis) {
-    this->angle = angle;
-    this->axis = axis;
 }
 
 Material Mesh::getMaterial() {
@@ -150,18 +141,21 @@ unsigned int Texture::getId() {
     return id;
 }
 
-Model::Model(char * path, Shader shader, float x, float y, float z) {
+Model::Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl) {
     this->shader = shader;
     loadModel(path);
-    position = {x, y, z};
+    position = pos;
+    ypr = rot;
+    scale = scl;
 }
-
-Model::Model(char * path, Shader shader, glm::vec3 pos): Model(path, shader, pos.x, pos.y, pos.z) {}
 
 void Model::render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights,  std::vector<SpotLight> spotLights) {
     for(int i = 0; i < meshes.size(); i++) {
         glm::mat4 model;
         model = glm::translate(model, position);
+        glm::mat4 rotation = glm::yawPitchRoll(glm::radians(ypr.x), glm::radians(ypr.y), glm::radians(ypr.z));
+        model *= rotation;
+        model = glm::scale(model, scale);
         meshes[i].render(model, view, projection, dirLights, pointLights, spotLights);
     }
 }
@@ -264,11 +258,20 @@ glm::vec3 Model::getPosition() {
     return position;
 }
 
-void Model::setPosition(glm::vec3 position) {
-    this->position = position;
+void Model::setPosition(float x, float y, float z) {
+    this->position = glm::vec3(x, y, z);
 }
 
-void Model::setRotation(float angle, glm::vec3 axis) {
-    this->angle = angle;
-    this->axis = axis;
+glm::vec3 Model::getRotation() {
+    return ypr;
+}
+
+void Model::setRotation(float yaw, float pitch, float roll) {
+    this->ypr = glm::vec3(yaw, pitch, roll);
+}
+
+void Model::rotate(float yaw, float pitch, float roll) {
+    ypr.x += yaw;
+    ypr.y += pitch;
+    ypr.z += roll;
 }

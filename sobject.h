@@ -78,15 +78,12 @@ public:
     void render(glm::mat4 model, glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLight);
     glm::vec3 getPosition();
     void setPosition(glm::vec3 position);
-    void setRotation(float angle, glm::vec3 axis);
     Material getMaterial();
     void setupMesh();
 
 private:
 
     glm::vec3 position;
-    float angle;
-    glm::vec3 axis;
     float scale;
 
     unsigned int VAO, VBO, EBO;
@@ -98,21 +95,21 @@ private:
 
 class Model {
 public:
-    Model(char *path, Shader shader, float x, float y, float z);
-    Model(char *path, Shader shader, glm::vec3 pos);
+    Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl);
     void render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLights);
     glm::vec3 getPosition();
-    void setPosition(glm::vec3 position);
-    void setRotation(float angle, glm::vec3 axis);
+    void setPosition(float x, float y, float z);
+    glm::vec3 getRotation();
+    void setRotation(float yaw, float pitch, float roll);
+    void rotate(float yaw, float pitch, float roll);
 
 private:
 
     Shader shader;
 
     glm::vec3 position;
-    float angle;
-    glm::vec3 axis;
-    float scale;
+    glm::vec3 ypr;
+    glm::vec3 scale;
 
     std::vector<Mesh> meshes;
     std::string directory;

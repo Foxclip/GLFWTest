@@ -67,9 +67,10 @@ void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, gl
     lightingShader.setFloat("spotLights["+std::to_string(index)+"].outerCutOff", spotLights[index].outerCutOff);
 }
 
-void Game::addModel(char *path, float x, float y, float z) {
-    Model model(path, lightingShader, x, y, z);
+Model& Game::addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl) {
+    Model model(path, lightingShader, pos, rot, scl);
     models.push_back(model);
+    return models.back();
 }
 
 void Game::frmbuf_size_cb(GLFWwindow * window, int width, int height) {
@@ -162,7 +163,7 @@ void Game::initShaders() {
 }
 
 void Game::processPhysics() {
-
+    models[0].rotate(1.0f, 0.0f, 0.0f);
 }
 
 void Game::render() {
