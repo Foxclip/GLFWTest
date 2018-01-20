@@ -102,7 +102,12 @@ void Game::initGLFW() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(screenWidth, screenHeight, "Some window", NULL, NULL);
+    
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* vidmode = glfwGetVideoMode(monitor);
+    screenWidth = vidmode->width;
+    screenHeight = vidmode->height;
+    window = glfwCreateWindow(screenWidth, screenHeight, "Some window", glfwGetPrimaryMonitor(), NULL);
     if(window == NULL) {
         std::cout << "Failed to create GLFW window" << "\n";
         glfwTerminate();
@@ -168,9 +173,15 @@ void Game::processPhysics() {
 
 void Game::render() {
     glm::mat4 view = camera.getViewMatrix();
-    glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)screenWidth/screenHeight, 0.1f, 100.0f);
+    float aspectRatio;
+    if(screenHeight == 0.0f) {
+        aspectRatio = 1.0f;
+    } else {
+        aspectRatio = (float)screenWidth/screenHeight;
+    }
+    glm::mat4 projection = glm::perspective(glm::radians(camera.fov), aspectRatio, 0.1f, 100.0f);
 
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for(Model model: models) {
         model.render(view, projection, dirLights, pointLights, spotLights);
