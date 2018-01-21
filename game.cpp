@@ -129,13 +129,67 @@ void Game::initGLFW() {
         std::cout << "Failed to initialize GLAD" << "\n";
         exit(-1);
     }
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_STENCIL_TEST);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    glGenFramebuffers(1, &screenFrameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
+
+    glGenTextures(1, &screenColorBuffer);
+    glBindTexture(GL_TEXTURE_2D, screenColorBuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenColorBuffer, 0);
+
+    unsigned int rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Framebuffer is not complete\n";
+        exit(-1);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glGenVertexArrays(1, &screenVAO);
+    glGenBuffers(1, &screenVBO);
+
+    glBindVertexArray(screenVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
+
+    float vertices[] = {
+
+        -1.0f, -1.0f,      0.0f, 0.0f,
+        -1.0f,  1.0f,      0.0f, 1.0f,
+         1.0f,  1.0f,      1.0f, 1.0f,
+
+        -1.0f, -1.0f,      0.0f, 0.0f,
+         1.0f,  1.0f,      1.0f, 1.0f,
+         1.0f, -1.0f,      1.0f, 0.0f
+
+    };
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+
 }
 
 void Game::processInput(GLFWwindow * window) {
@@ -182,6 +236,8 @@ void Game::initShaders() {
 
     uniformShader = Shader("plain.vert", "uniform.frag", "Uniform");
 
+    screenShader = Shader("quad.vert", "quad.frag", "Screen");
+
 }
 
 void Game::processPhysics() {
@@ -198,9 +254,11 @@ void Game::render() {
     }
     glm::mat4 projection = glm::perspective(glm::radians(camera.fov), aspectRatio, 0.1f, 100.0f);
 
+    glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glStencilMask(0xFF);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
     std::map<float, Model> sorted;
     for(Model model: transparentModels) {
@@ -216,6 +274,16 @@ void Game::render() {
     for(std::map<float, Model>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
         it->second.render(view, projection, dirLights, pointLights, spotLights);
     }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    screenShader.use();
+    glBindVertexArray(screenVAO);
+    glDisable(GL_DEPTH_TEST);
+    glBindTexture(GL_TEXTURE_2D, screenColorBuffer);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     glfwSwapBuffers(window);
     glfwPollEvents();

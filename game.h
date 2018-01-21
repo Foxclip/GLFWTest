@@ -36,6 +36,12 @@ private:
     Shader zShader;
     Shader uniformShader;
 
+    unsigned int screenFrameBuffer;
+    unsigned int screenColorBuffer;
+    unsigned int screenVAO;
+    unsigned int screenVBO;
+    Shader screenShader;
+
     std::vector<Mesh> cubes;
     std::vector<Model> opaqueModels;
     std::vector<Model> transparentModels;
