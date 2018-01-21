@@ -208,9 +208,11 @@ void Game::render() {
         sorted[distance] = model;
     }
 
+    glEnable(GL_CULL_FACE);
     for(Model model: opaqueModels) {
         model.render(view, projection, dirLights, pointLights, spotLights);
     }
+    glDisable(GL_CULL_FACE);
     for(std::map<float, Model>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
         it->second.render(view, projection, dirLights, pointLights, spotLights);
     }
