@@ -12,7 +12,7 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform mat3 newNormal;
-uniform vec3 lightPos;
+uniform mat3 newNormalWorld;
 
 void main() {
 	Normal = newNormal * aNormal;

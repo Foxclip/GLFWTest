@@ -78,7 +78,9 @@ void Mesh::render(glm::mat4 model, glm::mat4 pView, glm::mat4 pProjection, std::
     model = glm::scale(model, glm::vec3(scale));
     shader.setMat4("model", model);
     glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(pView * model)));
+    glm::mat3 normalMatrixWorld = glm::mat3(glm::transpose(glm::inverse(model)));
     shader.setMat3("newNormal", normalMatrix);
+    shader.setMat3("newNormalWorld", normalMatrixWorld);
 
     for(int i = 0; i < dirLights.size(); i++) {
         shader.setVec3("dirLights["+std::to_string(i)+"].direction", glm::vec3(pView * glm::vec4(dirLights[i].direction, 0.0f)));
@@ -155,8 +157,9 @@ Model::Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 
     scale = scl;
 }
 
-void Model::render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights,  std::vector<SpotLight> spotLights) {
+void Model::render(glm::mat4 view, glm::mat3 invView, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights,  std::vector<SpotLight> spotLights) {
     for(int i = 0; i < meshes.size(); i++) {
+        shader.setMat3("invView", invView);
         glm::mat4 model;
         model = glm::translate(model, position);
         glm::mat4 rotation = glm::yawPitchRoll(glm::radians(ypr.x), glm::radians(ypr.y), glm::radians(ypr.z));

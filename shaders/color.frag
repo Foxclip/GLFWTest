@@ -3,6 +3,7 @@
 in vec3 Normal;
 in vec3 FragPos;
 in vec2 TexCoords;
+in mat4 viewMat;
 
 out vec4 FragColor;
 
@@ -56,6 +57,9 @@ uniform int spotLightCount;
 
 uniform SpotLight spotLight;
 uniform Material material;
+
+uniform samplerCube skybox;
+uniform mat3 invView;
 
 vec3 calcDirLight(DirLight light, vec3 normal) {
 
@@ -160,5 +164,9 @@ void main() {
 		result += calcSpotLight(spotLights[i], norm);
 	}
 
-	FragColor = vec4(result, texture(material.diffuse, TexCoords).a);
+	//FragColor = vec4(result, texture(material.diffuse, TexCoords).a);
+
+	vec3 I = normalize(FragPos);
+	vec3 R = reflect(I, norm);
+	FragColor = vec4(texture(skybox, invView * R).rgb, 1.0);
 }

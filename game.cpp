@@ -363,6 +363,7 @@ void Game::render() {
     glStencilMask(0xFF);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
 
     //sort transparent models
     std::map<float, Model> sorted;
@@ -373,9 +374,10 @@ void Game::render() {
 
     //render opaque models
     glm::mat4 view = camera.getViewMatrix();
+    glm::mat3 invView = glm::mat3(glm::inverse(view));
     glEnable(GL_CULL_FACE);
     for(Model model: opaqueModels) {
-        model.render(view, projection, dirLights, pointLights, spotLights);
+        model.render(view, invView, projection, dirLights, pointLights, spotLights);
     }
 
     //render skybox
@@ -386,7 +388,6 @@ void Game::render() {
     skyboxShader.setMat4("projection", projection);
     skyboxShader.setMat4("view", view);
     glBindVertexArray(skyboxVAO);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glDepthMask(GL_TRUE);
 
@@ -394,7 +395,7 @@ void Game::render() {
     view = camera.getViewMatrix();
     glDisable(GL_CULL_FACE);
     for(std::map<float, Model>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-        it->second.render(view, projection, dirLights, pointLights, spotLights);
+        it->second.render(view, invView, projection, dirLights, pointLights, spotLights);
     }
 
     //render screen quad
