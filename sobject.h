@@ -97,6 +97,7 @@ private:
 
 class Model {
 public:
+    Model() {}
     Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge);
     void render(glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLights);
     glm::vec3 getPosition();

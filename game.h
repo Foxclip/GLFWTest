@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include "sobject.h"
 #include "camera.h"
 
@@ -11,7 +12,7 @@ public:
     void addDirectionalLight(float intensity, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient);
     void addPointLight(float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient);
     void addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff);
-    Model& addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge = GL_REPEAT);
+    Model& addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent = false, GLenum edge = GL_REPEAT);
 
     void frmbuf_size_cb(GLFWwindow* window, int width, int height);
     void mouseCb(GLFWwindow* window, double xpos, double ypos);
@@ -36,7 +37,8 @@ private:
     Shader uniformShader;
 
     std::vector<Mesh> cubes;
-    std::vector<Model> models;
+    std::vector<Model> opaqueModels;
+    std::vector<Model> transparentModels;
     std::vector<DirectionalLight> dirLights;
     std::vector<PointLight> pointLights;
     std::vector<SpotLight> spotLights;

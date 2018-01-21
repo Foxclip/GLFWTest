@@ -67,10 +67,15 @@ void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, gl
     lightingShader.setFloat("spotLights["+std::to_string(index)+"].outerCutOff", spotLights[index].outerCutOff);
 }
 
-Model& Game::addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge) {
+Model& Game::addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent, GLenum edge) {
     Model model(path, lightingShader, pos, rot, scl, edge);
-    models.push_back(model);
-    return models.back();
+    if(transparent) {
+        transparentModels.push_back(model);
+        return transparentModels.back();
+    } else {
+        opaqueModels.push_back(model);
+        return opaqueModels.back();
+    }
 }
 
 void Game::frmbuf_size_cb(GLFWwindow * window, int width, int height) {
@@ -179,7 +184,7 @@ void Game::initShaders() {
 }
 
 void Game::processPhysics() {
-    models[0].rotate(1.0f, 0.0f, 0.0f);
+    opaqueModels[0].rotate(1.0f, 0.0f, 0.0f);
 }
 
 void Game::render() {
@@ -196,8 +201,17 @@ void Game::render() {
     glStencilMask(0xFF);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    for(Model model: models) {
+    std::map<float, Model> sorted;
+    for(Model model: transparentModels) {
+        float distance = glm::length(camera.cameraPosition - model.getPosition());
+        sorted[distance] = model;
+    }
+
+    for(Model model: opaqueModels) {
         model.render(view, projection, dirLights, pointLights, spotLights);
+    }
+    for(std::map<float, Model>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
+        it->second.render(view, projection, dirLights, pointLights, spotLights);
     }
 
     glfwSwapBuffers(window);
