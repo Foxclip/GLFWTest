@@ -42,6 +42,11 @@ private:
     unsigned int screenVBO;
     Shader screenShader;
 
+    unsigned int skyboxTexture;
+    unsigned int skyboxVAO;
+    unsigned int skyboxVBO;
+    Shader skyboxShader;
+
     std::vector<Mesh> cubes;
     std::vector<Model> opaqueModels;
     std::vector<Model> transparentModels;
@@ -50,6 +55,8 @@ private:
     std::vector<SpotLight> spotLights;
 
     void initGLFW();
+    void initFrameBuffer();
+    unsigned int loadCubeMap(std::vector<std::string> faces);
     void processInput(GLFWwindow* window);
     void initShaders();
     void processPhysics();
