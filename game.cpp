@@ -1,5 +1,6 @@
 #include "game.h"
 #include <functional>
+#include "glm/gtx/norm.hpp"
 
 Game *game;
 
@@ -203,7 +204,7 @@ void Game::render() {
 
     std::map<float, Model> sorted;
     for(Model model: transparentModels) {
-        float distance = glm::length(camera.cameraPosition - model.getPosition());
+        float distance = glm::length2(camera.cameraPosition - model.getPosition());
         sorted[distance] = model;
     }
 
