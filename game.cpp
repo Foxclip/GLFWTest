@@ -216,6 +216,7 @@ void Game::initFrameBuffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
 
     glGenTextures(1, &screenColorBuffer);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, screenColorBuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -269,6 +270,7 @@ void Game::initFrameBuffer() {
 unsigned int Game::loadCubeMap(std::vector<std::string> faces) {
     unsigned int textureID;
     glGenTextures(1, &textureID);
+    //glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
     int width, height, nrChannels;
     for(int i = 0; i < faces.size(); i++) {
@@ -287,6 +289,8 @@ unsigned int Game::loadCubeMap(std::vector<std::string> faces) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    //glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
     return textureID;
 }
@@ -358,11 +362,14 @@ void Game::render() {
     glm::mat4 projection = glm::perspective(glm::radians(camera.fov), aspectRatio, 0.1f, 100.0f);
 
     //initializing
-    glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
+    //glActiveTexture(GL_TEXTURE2);
+    //glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glStencilMask(0xFF);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
+
+    //glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
 
     //sort transparent models
@@ -399,14 +406,14 @@ void Game::render() {
     }
 
     //render screen quad
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    screenShader.use();
-    glBindVertexArray(screenVAO);
-    glDisable(GL_DEPTH_TEST);
-    glBindTexture(GL_TEXTURE_2D, screenColorBuffer);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    //glClear(GL_COLOR_BUFFER_BIT);
+    //screenShader.use();
+    //glBindVertexArray(screenVAO);
+    //glDisable(GL_DEPTH_TEST);
+    //glBindTexture(GL_TEXTURE_2D, screenColorBuffer);
+    //glDrawArrays(GL_TRIANGLES, 0, 6);
 
     //final actions
     glfwSwapBuffers(window);

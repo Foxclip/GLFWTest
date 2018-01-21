@@ -18,8 +18,7 @@ unsigned int loadTexture(std::string filename, GLenum edge = GL_REPEAT, GLenum i
 class Texture {
 public:
     Texture() {}
-    Texture(std::string typeStr, std::string filename, GLenum edge = GL_REPEAT);
-    std::string typeStr;
+    Texture(std::string filename, GLenum edge = GL_REPEAT);
     std::string path;
     unsigned int getId();
 
@@ -32,13 +31,14 @@ static std::vector<Texture> loaded_textures;
 class Material {
 public:
     Material() {}
-    Material(Shader shader, std::vector<Texture> textures, bool hasDiffuse, bool hasSpecular);
+    Material(Shader shader, Texture diffuseTexture, Texture specularTexture, bool hasDiffuse, bool hasSpecular);
     Shader getShader();
     void setTextures();
 
 private:
     Shader shader;
-    std::vector<Texture> textures;
+    Texture diffuseTexture;
+    Texture specularTexture;
     bool hasDiffuse = false;
     bool hasSpecular = false;
 };
@@ -123,7 +123,7 @@ private:
     void loadModel(std::string path);
     void processNode(aiNode *node, const aiScene *scene);
     Mesh processMesh(aiMesh *mesh, const aiScene *scene);
-    std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName);
+    std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type);
 
 
 };

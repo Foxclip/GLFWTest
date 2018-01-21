@@ -21,11 +21,11 @@ unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation
     return texture;
 }
 
-Material::Material(Shader shader, std::vector<Texture> textures, bool hasDiffuse, bool hasSpecular) {
+Material::Material(Shader shader, Texture diffuseTexture, Texture specularTexture, bool hasDiffuse, bool hasSpecular) {
 
     this->shader = shader;
-    this->textures = textures;
-
+    this->diffuseTexture = diffuseTexture;
+    this->specularTexture = specularTexture;
     this->hasDiffuse = hasDiffuse;
     this->hasSpecular = hasSpecular;
 
@@ -36,20 +36,13 @@ Shader Material::getShader() {
 }
 
 void Material::setTextures() {
-    unsigned int units[] = {
-        GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3, GL_TEXTURE4, GL_TEXTURE5, GL_TEXTURE6, GL_TEXTURE7,
-        GL_TEXTURE8, GL_TEXTURE9, GL_TEXTURE10, GL_TEXTURE11, GL_TEXTURE12, GL_TEXTURE13, GL_TEXTURE14, GL_TEXTURE15
-    };
     shader.use();
-    for(int i = 0; i < textures.size(); i++) {
-        shader.setInt(textures[i].typeStr, i);
-        glActiveTexture(units[i]);
-        glBindTexture(GL_TEXTURE_2D, textures[i].getId());
-    }
-
-    shader.setInt("material.hasDiffuse", hasDiffuse);
-    shader.setInt("material.hasSpecular", hasSpecular);
-
+    shader.setInt("material.diffuse", 1);
+    shader.setInt("material.specular", 2);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, diffuseTexture.getId());
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, specularTexture.getId());
 }
 
 
@@ -138,8 +131,7 @@ void Mesh::setupMesh() {
 
 }
 
-Texture::Texture(std::string typeStr, std::string filename, GLenum edge) {
-    this->typeStr = typeStr;
+Texture::Texture(std::string filename, GLenum edge) {
     this->path = filename;
     id = loadTexture(filename, edge);
 }
@@ -193,7 +185,6 @@ void Model::processNode(aiNode * node, const aiScene * scene) {
 Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene) {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    std::vector<Texture> textures;
 
     for(int i = 0; i < mesh->mNumVertices; i++) {
 
@@ -234,25 +225,34 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene) {
     bool hasDiffuse;
     bool hasSpecular;
 
+    Texture diffuseMap;
+    Texture specularMap;
+
     if(mesh->mMaterialIndex >= 0) {
 
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 
-        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "material.diffuse");
+        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE);
         hasDiffuse = diffuseMaps.size() > 0;
-        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+        if(hasDiffuse) {
+            diffuseMap = diffuseMaps[0];
+        }
+        //textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "material.specular");
+        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
         hasSpecular = specularMaps.size() > 0;
-        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+        if(hasSpecular) {
+            specularMap = specularMaps[0];
+        }
+        //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
     }
 
-    return Mesh(0.0f, 0.0f, 0.0f, 1.0f, Material(shader, textures, hasDiffuse, hasSpecular), vertices, indices);
+    return Mesh(0.0f, 0.0f, 0.0f, 1.0f, Material(shader, diffuseMap, specularMap, hasDiffuse, hasSpecular), vertices, indices);
 
 }
 
-std::vector<Texture> Model::loadMaterialTextures(aiMaterial * mat, aiTextureType type, std::string typeName) {
+std::vector<Texture> Model::loadMaterialTextures(aiMaterial * mat, aiTextureType type) {
     std::vector<Texture> textures;
     for(int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString tex_path;
@@ -266,7 +266,9 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial * mat, aiTextureType
             }
         }
         if(!skip) {
-            textures.push_back(Texture(typeName, directory + "/" + std::string(tex_path.C_Str()), edge));
+            Texture newTexture(directory + "/" + std::string(tex_path.C_Str()), edge);
+            textures.push_back(newTexture);
+            loaded_textures.push_back(newTexture);
         }
     }
     return textures;
