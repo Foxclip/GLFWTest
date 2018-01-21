@@ -205,6 +205,8 @@ void Game::initGLFW() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    glDepthFunc(GL_LEQUAL);
+
     //glBindVertexArray(0);
 
 }
@@ -344,22 +346,40 @@ void Game::processPhysics() {
 }
 
 void Game::render() {
+
+    //alt-tab crash prevention
     float aspectRatio;
     if(screenHeight == 0.0f) {
         aspectRatio = 1.0f;
     } else {
         aspectRatio = (float)screenWidth/screenHeight;
     }
+
     glm::mat4 projection = glm::perspective(glm::radians(camera.fov), aspectRatio, 0.1f, 100.0f);
 
+    //initializing
     glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glStencilMask(0xFF);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    glm::mat4 view = glm::mat4(glm::mat3(camera.getViewMatrix()));
+    //sort transparent models
+    std::map<float, Model> sorted;
+    for(Model model: transparentModels) {
+        float distance = glm::length2(camera.cameraPosition - model.getPosition());
+        sorted[distance] = model;
+    }
 
+    //render opaque models
+    glm::mat4 view = camera.getViewMatrix();
+    glEnable(GL_CULL_FACE);
+    for(Model model: opaqueModels) {
+        model.render(view, projection, dirLights, pointLights, spotLights);
+    }
+
+    //render skybox
+    view = glm::mat4(glm::mat3(camera.getViewMatrix()));
     glDisable(GL_CULL_FACE);
     glDepthMask(GL_FALSE);
     skyboxShader.use();
@@ -370,33 +390,24 @@ void Game::render() {
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glDepthMask(GL_TRUE);
 
+    //render transparent objects
     view = camera.getViewMatrix();
-
-    std::map<float, Model> sorted;
-    for(Model model: transparentModels) {
-        float distance = glm::length2(camera.cameraPosition - model.getPosition());
-        sorted[distance] = model;
-    }
-
-    glEnable(GL_CULL_FACE);
-    for(Model model: opaqueModels) {
-        model.render(view, projection, dirLights, pointLights, spotLights);
-    }
     glDisable(GL_CULL_FACE);
     for(std::map<float, Model>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
         it->second.render(view, projection, dirLights, pointLights, spotLights);
     }
 
+    //render screen quad
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-
     screenShader.use();
     glBindVertexArray(screenVAO);
     glDisable(GL_DEPTH_TEST);
     glBindTexture(GL_TEXTURE_2D, screenColorBuffer);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
+    //final actions
     glfwSwapBuffers(window);
     glfwPollEvents();
 }
