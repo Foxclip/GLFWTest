@@ -37,6 +37,8 @@ Shader Material::getShader() {
 
 void Material::setTextures() {
     shader.use();
+    shader.setBool("material.hasDiffuse", hasDiffuse);
+    shader.setBool("material.hasSpecular", hasSpecular);
     shader.setInt("material.diffuse", 1);
     shader.setInt("material.specular", 2);
     glActiveTexture(GL_TEXTURE1);
