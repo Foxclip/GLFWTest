@@ -363,7 +363,7 @@ void Game::render() {
 
     //initializing
     //glActiveTexture(GL_TEXTURE2);
-    //glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glStencilMask(0xFF);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -406,14 +406,15 @@ void Game::render() {
     }
 
     //render screen quad
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    //glClear(GL_COLOR_BUFFER_BIT);
-    //screenShader.use();
-    //glBindVertexArray(screenVAO);
-    //glDisable(GL_DEPTH_TEST);
-    //glBindTexture(GL_TEXTURE_2D, screenColorBuffer);
-    //glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    screenShader.use();
+    glBindVertexArray(screenVAO);
+    glDisable(GL_DEPTH_TEST);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, screenColorBuffer);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     //final actions
     glfwSwapBuffers(window);
