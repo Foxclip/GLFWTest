@@ -23,6 +23,8 @@ int main() {
     Model& window2 = game->addModel("models/window/window.obj", glm::vec3(-3.0f, 1.0f, 1.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
     Model& windowcube = game->addModel("models/windowcube/windowcube.obj", glm::vec3(-3.0f, 1.001f, -3.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
 
+    Model& sphere = game->addModel("models/sphere/sphere.obj", glm::vec3(3.0f, 1.0f, 1.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+
     game->start();
 
     return 0;

@@ -188,6 +188,7 @@ void main() {
 
 	vec3 norm = normalize(Normal);
 
+/*
 	vec3 resultDiffuse;
 	vec3 resultSpecular;
 
@@ -210,5 +211,13 @@ void main() {
 	vec3 result = mix(resultDiffuse, reflectColor, 0.5) + resultSpecular;
 
 	FragColor = vec4(result, texture(material.diffuse, TexCoords).a);
+*/
+
+	float ratio = 1.00 / 1.52;
+	vec3 I = normalize(FragPos);
+	vec3 R = refract(I, norm, ratio);
+	vec3 refractColor = texture(skybox, invView * R).rgb;
+
+	FragColor = vec4(refractColor, texture(material.diffuse, TexCoords).a);
 
 }
