@@ -7,6 +7,9 @@ in vec2 TexCoords;
 out vec4 FragColor;
 
 struct Material {
+	vec4 diffuseColor;
+	vec3 specularColor;
+	float reflectivity;
 	sampler2D diffuse;
 	sampler2D specular;
 	//sampler2D emission;
@@ -188,7 +191,6 @@ void main() {
 
 	vec3 norm = normalize(Normal);
 
-/*
 	vec3 resultDiffuse;
 	vec3 resultSpecular;
 
@@ -208,16 +210,17 @@ void main() {
 	vec3 I = normalize(FragPos);
 	vec3 R = reflect(I, norm);
 	vec3 reflectColor = texture(skybox, invView * R).rgb;
-	vec3 result = mix(resultDiffuse, reflectColor, 0.5) + resultSpecular;
+	vec3 result = mix(resultDiffuse, reflectColor, material.reflectivity) + resultSpecular;
 
 	FragColor = vec4(result, texture(material.diffuse, TexCoords).a);
-*/
 
+/*
 	float ratio = 1.00 / 1.52;
 	vec3 I = normalize(FragPos);
 	vec3 R = refract(I, norm, ratio);
 	vec3 refractColor = texture(skybox, invView * R).rgb;
 
 	FragColor = vec4(refractColor, texture(material.diffuse, TexCoords).a);
+*/
 
 }

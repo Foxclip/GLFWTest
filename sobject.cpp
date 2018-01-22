@@ -21,13 +21,14 @@ unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation
     return texture;
 }
 
-Material::Material(Shader shader, Texture diffuseTexture, Texture specularTexture, bool hasDiffuse, bool hasSpecular) {
+Material::Material(Shader shader, Texture diffuseTexture, Texture specularTexture, bool hasDiffuse, bool hasSpecular, float reflectivity) {
 
     this->shader = shader;
     this->diffuseTexture = diffuseTexture;
     this->specularTexture = specularTexture;
     this->hasDiffuse = hasDiffuse;
     this->hasSpecular = hasSpecular;
+    this->reflectivity = reflectivity;
 
 }
 
@@ -39,6 +40,7 @@ void Material::setTextures() {
     shader.use();
     shader.setBool("material.hasDiffuse", hasDiffuse);
     shader.setBool("material.hasSpecular", hasSpecular);
+    shader.setFloat("material.reflectivity", reflectivity); 
     shader.setInt("material.diffuse", 1);
     shader.setInt("material.specular", 2);
     glActiveTexture(GL_TEXTURE1);
@@ -142,9 +144,10 @@ unsigned int Texture::getId() {
     return id;
 }
 
-Model::Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge) {
+Model::Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, float reflectivity, GLenum edge) {
     this->shader = shader;
     this->edge = edge;
+    this->reflectivity = reflectivity;
     loadModel(path);
     position = pos;
     ypr = rot;
@@ -250,7 +253,7 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene) {
 
     }
 
-    return Mesh(0.0f, 0.0f, 0.0f, 1.0f, Material(shader, diffuseMap, specularMap, hasDiffuse, hasSpecular), vertices, indices);
+    return Mesh(0.0f, 0.0f, 0.0f, 1.0f, Material(shader, diffuseMap, specularMap, hasDiffuse, hasSpecular, reflectivity), vertices, indices);
 
 }
 
