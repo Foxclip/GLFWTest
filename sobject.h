@@ -31,17 +31,21 @@ static std::vector<Texture> loaded_textures;
 class Material {
 public:
     Material() {}
-    Material(Shader shader, Texture diffuseTexture, Texture specularTexture, bool hasDiffuse, bool hasSpecular, float reflectivity);
+    Material(Shader shader, glm::vec3 diffuseColor, glm::vec3 specularColor, glm::vec3 mirrorColor, float exponent, float reflectivity, Texture diffuseTexture, Texture specularTexture, Texture reflectionTexture, bool hasDiffuse, bool hasSpecular);
     Shader getShader();
     void setTextures();
 
 private:
     Shader shader;
+    glm::vec3 diffuseColor;
+    glm::vec3 specularColor;
+    glm::vec3 mirrorColor;
+    float exponent;
+    float reflectivity;
     Texture diffuseTexture;
     Texture specularTexture;
     bool hasDiffuse = false;
     bool hasSpecular = false;
-    float reflectivity;
 };
 
 struct DirectionalLight {
@@ -99,7 +103,7 @@ private:
 class Model {
 public:
     Model() {}
-    Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, float reflectivity, GLenum edge);
+    Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge);
     void render(glm::mat4 view, glm::mat3 invView, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLights);
     glm::vec3 getPosition();
     void setPosition(float x, float y, float z);
@@ -119,7 +123,6 @@ private:
 
     //get rid of this
     GLenum edge;
-    float reflectivity;
 
     std::vector<Mesh> meshes;
     std::string directory;

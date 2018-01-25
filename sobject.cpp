@@ -21,15 +21,17 @@ unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation
     return texture;
 }
 
-Material::Material(Shader shader, Texture diffuseTexture, Texture specularTexture, bool hasDiffuse, bool hasSpecular, float reflectivity) {
-
+Material::Material(Shader shader, glm::vec3 diffuseColor, glm::vec3 specularColor, glm::vec3 mirrorColor, float exponent, float reflectivity, Texture diffuseTexture, Texture specularTexture, Texture reflectionTexture, bool hasDiffuse, bool hasSpecular) {
     this->shader = shader;
+    this->diffuseColor = diffuseColor;
+    this->specularColor = specularColor;
+    this->mirrorColor = mirrorColor;
+    this->exponent = exponent;
+    this->reflectivity = reflectivity;
     this->diffuseTexture = diffuseTexture;
     this->specularTexture = specularTexture;
     this->hasDiffuse = hasDiffuse;
     this->hasSpecular = hasSpecular;
-    this->reflectivity = reflectivity;
-
 }
 
 Shader Material::getShader() {
@@ -40,7 +42,11 @@ void Material::setTextures() {
     shader.use();
     shader.setBool("material.hasDiffuse", hasDiffuse);
     shader.setBool("material.hasSpecular", hasSpecular);
-    shader.setFloat("material.reflectivity", reflectivity); 
+    shader.setVec3("material.diffuseColor", diffuseColor);
+    shader.setVec3("material.specularColor", specularColor);
+    shader.setVec3("material.mirrorColor", mirrorColor);
+    shader.setFloat("material.shininess", exponent);
+    shader.setFloat("material.reflectivity", reflectivity);
     shader.setInt("material.diffuse", 1);
     shader.setInt("material.specular", 2);
     glActiveTexture(GL_TEXTURE1);
@@ -144,10 +150,9 @@ unsigned int Texture::getId() {
     return id;
 }
 
-Model::Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, float reflectivity, GLenum edge) {
+Model::Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge) {
     this->shader = shader;
     this->edge = edge;
-    this->reflectivity = reflectivity;
     loadModel(path);
     position = pos;
     ypr = rot;
@@ -229,31 +234,63 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene) {
 
     bool hasDiffuse;
     bool hasSpecular;
+    bool hasReflection;
 
     Texture diffuseMap;
     Texture specularMap;
+    Texture reflectionMap;
+
+    aiColor3D diffuseColor;
+    aiColor3D specularColor;
+    aiColor3D mirrorColor;
+    ai_real exponent;
+    ai_real reflectivity;
 
     if(mesh->mMaterialIndex >= 0) {
 
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+
+        if(material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuseColor) != aiReturn_SUCCESS) {
+            diffuseColor = {0.5f, 0.5f, 0.5f};
+        }
+        if(material->Get(AI_MATKEY_COLOR_SPECULAR, specularColor) != aiReturn_SUCCESS) {
+            specularColor = {0.5f, 0.5f, 0.5f};
+        }
+        if(material->Get(AI_MATKEY_COLOR_REFLECTIVE, mirrorColor) != aiReturn_SUCCESS) {
+            mirrorColor = {0.0f, 0.0f, 0.0f};
+        }
+        if(material->Get(AI_MATKEY_SHININESS, exponent) != aiReturn_SUCCESS) {
+            exponent = 100.0f;
+        }
+        if(material->Get(AI_MATKEY_REFLECTIVITY, reflectivity) != aiReturn_SUCCESS) {
+            reflectivity = 0.0f;
+        }
 
         std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE);
         hasDiffuse = diffuseMaps.size() > 0;
         if(hasDiffuse) {
             diffuseMap = diffuseMaps[0];
         }
-        //textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-
         std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
         hasSpecular = specularMaps.size() > 0;
         if(hasSpecular) {
             specularMap = specularMaps[0];
         }
-        //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
     }
 
-    return Mesh(0.0f, 0.0f, 0.0f, 1.0f, Material(shader, diffuseMap, specularMap, hasDiffuse, hasSpecular, reflectivity), vertices, indices);
+    glm::vec3 diffuseColorGlmVec(diffuseColor.r, diffuseColor.g, diffuseColor.b);
+    glm::vec3 specularColorGlmVec(specularColor.r, specularColor.g, specularColor.b);
+    glm::vec3 mirrorColorGlmVec(mirrorColor.r, mirrorColor.g, mirrorColor.b);
+
+    Material newMaterial(    shader,
+                             diffuseColorGlmVec, specularColorGlmVec, mirrorColorGlmVec,
+                             exponent, reflectivity,
+                             diffuseMap, specularMap, reflectionMap,
+                             hasDiffuse, hasSpecular
+                        );
+
+    return Mesh(0.0f, 0.0f, 0.0f, 1.0f, newMaterial, vertices, indices);
 
 }
 
