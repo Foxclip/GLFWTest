@@ -71,39 +71,6 @@ Mesh::Mesh(float x, float y, float z, float scale, Material material, std::vecto
 
 Mesh::Mesh(glm::vec3 pos, float scale, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices): Mesh(pos.x, pos.y, pos.z, scale, material, vertices, indices) {}
 
-void Mesh::render(glm::mat4 model, glm::mat4 pView, glm::mat4 pProjection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLights) {
-  
-    Shader shader = material.getShader();
-    shader.use();
-    shader.setMat4("view", pView);
-    shader.setMat4("projection", pProjection);
-    model = glm::translate(model, position);
-    model = glm::scale(model, glm::vec3(scale));
-    shader.setMat4("model", model);
-    glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(pView * model)));
-    glm::mat3 normalMatrixWorld = glm::mat3(glm::transpose(glm::inverse(model)));
-    shader.setMat3("newNormal", normalMatrix);
-    shader.setMat3("newNormalWorld", normalMatrixWorld);
-
-    for(int i = 0; i < dirLights.size(); i++) {
-        shader.setVec3("dirLights["+std::to_string(i)+"].direction", glm::vec3(pView * glm::vec4(dirLights[i].direction, 0.0f)));
-    }
-    for(int i = 0; i < pointLights.size(); i++) {
-        shader.setVec3("pointLights[" + std::to_string(i) + "].position", glm::vec3(pView * glm::vec4(pointLights[i].position, 1.0f)));
-    }
-    for(int i = 0; i < spotLights.size(); i++) {
-        shader.setVec3("spotLights[" + std::to_string(i) + "].direction", glm::vec3(pView * glm::vec4(spotLights[i].direction, 0.0f)));
-        shader.setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(pView * glm::vec4(spotLights[i].position, 1.0f)));
-    }
-
-    material.setTextures();
-
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-
-}
-
 glm::vec3 Mesh::getPosition() {
     return position;
 }
@@ -114,6 +81,18 @@ void Mesh::setPosition(glm::vec3 position) {
 
 Material Mesh::getMaterial() {
     return material;
+}
+
+float Mesh::getScale() {
+    return scale;
+}
+
+unsigned int Mesh::getVAO() {
+    return VAO;
+}
+
+unsigned int Mesh::getIndexCount() {
+    return indices.size();
 }
 
 void Mesh::setupMesh() {
@@ -159,18 +138,6 @@ Model::Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 
     scale = scl;
 }
 
-void Model::render(glm::mat4 view, glm::mat3 invView, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights,  std::vector<SpotLight> spotLights) {
-    for(int i = 0; i < meshes.size(); i++) {
-        shader.setMat3("invView", invView);
-        glm::mat4 model;
-        model = glm::translate(model, position);
-        glm::mat4 rotation = glm::yawPitchRoll(glm::radians(ypr.x), glm::radians(ypr.y), glm::radians(ypr.z));
-        model *= rotation;
-        model = glm::scale(model, scale);
-        meshes[i].render(model, view, projection, dirLights, pointLights, spotLights);
-    }
-}
-
 void Model::loadModel(std::string path) {
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -192,7 +159,7 @@ void Model::processNode(aiNode * node, const aiScene * scene) {
     }
 }
 
-Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene) {
+Mesh* Model::processMesh(aiMesh * mesh, const aiScene * scene) {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
@@ -290,7 +257,8 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene) {
                              hasDiffuse, hasSpecular
                         );
 
-    return Mesh(0.0f, 0.0f, 0.0f, 1.0f, newMaterial, vertices, indices);
+    //return std::make_unique<Mesh>(Mesh(0.0f, 0.0f, 0.0f, 1.0f, newMaterial, vertices, indices));
+    return new Mesh(0.0f, 0.0f, 0.0f, 1.0f, newMaterial, vertices, indices);
 
 }
 
@@ -344,4 +312,12 @@ glm::vec3 Model::getScale() {
 
 void Model::setScale(glm::vec3 scale) {
     this->scale = scale;
+}
+
+std::vector<Mesh*>& Model::getMeshes() {
+    return meshes;
+}
+
+Shader Model::getShader() {
+    return shader;
 }

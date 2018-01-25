@@ -349,6 +349,67 @@ void Game::processPhysics() {
     opaqueModels[0].rotate(1.0f, 0.0f, 0.0f);
 }
 
+void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, glm::mat4 invViewMatrix, glm::mat4 projectionMatrix) {
+
+    //some preparations
+    glm::vec3 modelPosition = currentModel.getPosition();
+    glm::vec3 modelRotation = currentModel.getRotation();
+    glm::vec3 modelScale = currentModel.getScale();
+    Shader currentShader = currentModel.getShader();
+    currentShader.use();
+    currentShader.setMat3("invView", invViewMatrix);
+
+    //translating and rotating
+    glm::mat4 modelMatrix;
+    modelMatrix = glm::translate(modelMatrix, modelPosition);
+    glm::mat4 rotation = glm::yawPitchRoll(glm::radians(modelRotation.x), glm::radians(modelRotation.y), glm::radians(modelRotation.z));
+    modelMatrix *= rotation;
+    modelMatrix = glm::scale(modelMatrix, modelScale);
+
+    std::vector<Mesh*>& meshes = currentModel.getMeshes();
+
+    //rendering meshes
+    for(Mesh* currentMesh: meshes) {
+
+        //preparations
+        glm::vec3 meshPosition = currentMesh->getPosition();
+        float meshScale = currentMesh->getScale();
+        currentShader.setMat4("view", viewMatrix);
+        currentShader.setMat4("projection", projectionMatrix);
+
+        //transforms
+        modelMatrix = glm::translate(modelMatrix, meshPosition);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(meshScale));
+        currentShader.setMat4("model", modelMatrix);
+
+        glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * modelMatrix)));
+        currentShader.setMat3("newNormal", normalMatrix);
+
+        //TODO do this only when number of lights changes
+        currentShader.setInt("dirLightCount", dirLights.size());
+        currentShader.setInt("pointLightCount", pointLights.size());
+        currentShader.setInt("spotLightCount", spotLights.size());
+
+        //sending lights to shader
+        for(int i = 0; i < dirLights.size(); i++) {
+            currentShader.setVec3("dirLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(dirLights[i].direction, 0.0f)));
+        }
+        for(int i = 0; i < pointLights.size(); i++) {
+            currentShader.setVec3("pointLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(pointLights[i].position, 1.0f)));
+        }
+        for(int i = 0; i < spotLights.size(); i++) {
+            currentShader.setVec3("spotLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(spotLights[i].direction, 0.0f)));
+            currentShader.setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(spotLights[i].position, 1.0f)));
+        }
+        currentMesh->getMaterial().setTextures();
+
+        //finally, rendering
+        glBindVertexArray(currentMesh->getVAO());
+        glDrawElements(GL_TRIANGLES, currentMesh->getIndexCount(), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
+}
+
 void Game::render() {
 
     //alt-tab crash prevention
@@ -359,7 +420,6 @@ void Game::render() {
         aspectRatio = (float)screenWidth/screenHeight;
     }
 
-
     //initializing
     glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -368,22 +428,23 @@ void Game::render() {
     glEnable(GL_DEPTH_TEST);
     glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
 
-    //render opaque models
+    //getting matrices
     glm::mat4 view = camera.getViewMatrix();
     glm::mat3 invView = glm::mat3(glm::inverse(view));
     glm::mat4 projection = glm::perspective(glm::radians(camera.fov), aspectRatio, 0.1f, 100.0f);
+
+    //render opaque models
     glEnable(GL_CULL_FACE);
-    for(Model model: opaqueModels) {
-        model.render(view, invView, projection, dirLights, pointLights, spotLights);
+    for(Model& model : opaqueModels) {
+        renderModel(model, view, invView, projection);
     }
 
-    //render skybox
-    view = glm::mat4(glm::mat3(view));
+    glm::mat4 skyboxView = glm::mat4(glm::mat3(view)); //no translation
     glDisable(GL_CULL_FACE);
     glDepthMask(GL_FALSE);
     skyboxShader.use();
     skyboxShader.setMat4("projection", projection);
-    skyboxShader.setMat4("view", view);
+    skyboxShader.setMat4("view", skyboxView);
     glBindVertexArray(skyboxVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glDepthMask(GL_TRUE);
@@ -394,11 +455,10 @@ void Game::render() {
         float distance = glm::length2(camera.cameraPosition - model.getPosition());
         sorted[distance] = model;
     }
-
-    //render transparent objects
+    //render transparent models
     glDisable(GL_CULL_FACE);
     for(std::map<float, Model>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-        it->second.render(view, invView, projection, dirLights, pointLights, spotLights);
+        renderModel(it->second, view, invView, projection);
     }
 
     //render screen quad

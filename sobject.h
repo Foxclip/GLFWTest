@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 #include "stb_image.h"
 #include "shader.h"
 #include <assimp/Importer.hpp>
@@ -82,10 +83,12 @@ class Mesh {
 public:
     Mesh(float x, float y, float z, float scale, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices);
     Mesh(glm::vec3 pos, float scale, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices);
-    void render(glm::mat4 model, glm::mat4 view, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLight);
     glm::vec3 getPosition();
     void setPosition(glm::vec3 position);
     Material getMaterial();
+    float getScale();
+    unsigned int getVAO();
+    unsigned int getIndexCount();
     void setupMesh();
 
 private:
@@ -104,7 +107,6 @@ class Model {
 public:
     Model() {}
     Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge);
-    void render(glm::mat4 view, glm::mat3 invView, glm::mat4 projection, std::vector<DirectionalLight> dirLights, std::vector<PointLight> pointLights, std::vector<SpotLight> spotLights);
     glm::vec3 getPosition();
     void setPosition(float x, float y, float z);
     glm::vec3 getRotation();
@@ -112,6 +114,8 @@ public:
     void rotate(float yaw, float pitch, float roll);
     glm::vec3 getScale();
     void setScale(glm::vec3 scale);
+    std::vector<Mesh*>& getMeshes();
+    Shader getShader();
 
 private:
 
@@ -124,11 +128,11 @@ private:
     //get rid of this
     GLenum edge;
 
-    std::vector<Mesh> meshes;
+    std::vector<Mesh*> meshes;
     std::string directory;
     void loadModel(std::string path);
     void processNode(aiNode *node, const aiScene *scene);
-    Mesh processMesh(aiMesh *mesh, const aiScene *scene);
+    Mesh* processMesh(aiMesh *mesh, const aiScene *scene);
     std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type);
 
 

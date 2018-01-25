@@ -61,6 +61,7 @@ private:
     void processInput(GLFWwindow* window);
     void initShaders();
     void processPhysics();
+    void renderModel(Model model, glm::mat4 view, glm::mat4 invView, glm::mat4 projection);
     void render();
 
 };
