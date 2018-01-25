@@ -32,7 +32,7 @@ static std::vector<Texture> loaded_textures;
 class Material {
 public:
     Material() {}
-    Material(Shader shader, glm::vec3 diffuseColor, glm::vec3 specularColor, glm::vec3 mirrorColor, float exponent, float reflectivity, Texture diffuseTexture, Texture specularTexture, Texture reflectionTexture, bool hasDiffuse, bool hasSpecular);
+    Material(Shader shader, glm::vec3 diffuseColor, glm::vec3 specularColor, glm::vec3 mirrorColor, float exponent, float reflectivity, Texture diffuseTexture, Texture specularTexture, bool hasDiffuse, bool hasSpecular);
     Shader getShader();
     void setTextures();
 
@@ -132,7 +132,7 @@ private:
     std::string directory;
     void loadModel(std::string path);
     void processNode(aiNode *node, const aiScene *scene);
-    Mesh* processMesh(aiMesh *mesh, const aiScene *scene);
+    Mesh* processMesh(aiMesh* mesh, const aiScene* scene, ai_real nodeX, ai_real nodeY, ai_real nodeZ);
     std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type);
 
 

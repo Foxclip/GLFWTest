@@ -21,7 +21,7 @@ unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation
     return texture;
 }
 
-Material::Material(Shader shader, glm::vec3 diffuseColor, glm::vec3 specularColor, glm::vec3 mirrorColor, float exponent, float reflectivity, Texture diffuseTexture, Texture specularTexture, Texture reflectionTexture, bool hasDiffuse, bool hasSpecular) {
+Material::Material(Shader shader, glm::vec3 diffuseColor, glm::vec3 specularColor, glm::vec3 mirrorColor, float exponent, float reflectivity, Texture diffuseTexture, Texture specularTexture, bool hasDiffuse, bool hasSpecular) {
     this->shader = shader;
     this->diffuseColor = diffuseColor;
     this->specularColor = specularColor;
@@ -149,17 +149,22 @@ void Model::loadModel(std::string path) {
     processNode(scene->mRootNode, scene);
 }
 
-void Model::processNode(aiNode * node, const aiScene * scene) {
+void Model::processNode(aiNode* node, const aiScene* scene) {
+    aiMatrix4x4 nodeTransform = node->mTransformation;
+    ai_real nodeX = nodeTransform.a4;
+    ai_real nodeY = nodeTransform.b4;
+    ai_real nodeZ = nodeTransform.c4;
     for(int i = 0; i < node->mNumMeshes; i++) {
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-        meshes.push_back(processMesh(mesh, scene));
+        meshes.push_back(processMesh(mesh, scene, nodeX, nodeY, nodeZ));
     }
     for(int i = 0; i < node->mNumChildren; i++) {
         processNode(node->mChildren[i], scene);
     }
 }
 
-Mesh* Model::processMesh(aiMesh * mesh, const aiScene * scene) {
+Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene, ai_real nodeX, ai_real nodeY, ai_real nodeZ) {
+
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
@@ -201,11 +206,9 @@ Mesh* Model::processMesh(aiMesh * mesh, const aiScene * scene) {
 
     bool hasDiffuse;
     bool hasSpecular;
-    bool hasReflection;
 
     Texture diffuseMap;
     Texture specularMap;
-    Texture reflectionMap;
 
     aiColor3D diffuseColor;
     aiColor3D specularColor;
@@ -253,12 +256,12 @@ Mesh* Model::processMesh(aiMesh * mesh, const aiScene * scene) {
     Material newMaterial(    shader,
                              diffuseColorGlmVec, specularColorGlmVec, mirrorColorGlmVec,
                              exponent, reflectivity,
-                             diffuseMap, specularMap, reflectionMap,
+                             diffuseMap, specularMap,
                              hasDiffuse, hasSpecular
                         );
 
     //return std::make_unique<Mesh>(Mesh(0.0f, 0.0f, 0.0f, 1.0f, newMaterial, vertices, indices));
-    return new Mesh(0.0f, 0.0f, 0.0f, 1.0f, newMaterial, vertices, indices);
+    return new Mesh(nodeX, nodeY, nodeZ, 1.0f, newMaterial, vertices, indices);
 
 }
 

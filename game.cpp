@@ -378,11 +378,12 @@ void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, glm::mat4 invVi
         currentShader.setMat4("projection", projectionMatrix);
 
         //transforms
-        modelMatrix = glm::translate(modelMatrix, meshPosition);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(meshScale));
-        currentShader.setMat4("model", modelMatrix);
+        glm::mat4 meshModelMatrix;
+        meshModelMatrix = glm::translate(modelMatrix, meshPosition);
+        meshModelMatrix = glm::scale(meshModelMatrix, glm::vec3(meshScale));
+        currentShader.setMat4("model", meshModelMatrix);
 
-        glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * modelMatrix)));
+        glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * meshModelMatrix))); //change to modelMatrix in case of problems with normals
         currentShader.setMat3("newNormal", normalMatrix);
 
         //TODO do this only when number of lights changes
