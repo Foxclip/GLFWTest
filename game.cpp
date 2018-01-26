@@ -332,8 +332,6 @@ void Game::processInput(GLFWwindow * window) {
 void Game::initShaders() {
 
     lightingShader = Shader("plain.vert", "color.frag", "Lighting");
-    lightingShader.use();
-    lightingShader.setFloat("material.shininess", 32.0f);
 
     zShader = Shader("plain.vert", "z.frag", "ZShader");
 
@@ -351,10 +349,12 @@ void Game::processPhysics() {
 
 void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, glm::mat4 invViewMatrix, glm::mat4 projectionMatrix) {
 
-    //some preparations
+    //getting transforms
     glm::vec3 modelPosition = currentModel.getPosition();
     glm::vec3 modelRotation = currentModel.getRotation();
     glm::vec3 modelScale = currentModel.getScale();
+
+    //preparing shader
     Shader currentShader = currentModel.getShader();
     currentShader.use();
     currentShader.setMat3("invView", invViewMatrix);
@@ -387,24 +387,26 @@ void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, glm::mat4 invVi
         currentShader.setMat3("newNormal", normalMatrix);
 
         //TODO do this only when number of lights changes
-        currentShader.setInt("dirLightCount", dirLights.size());
-        currentShader.setInt("pointLightCount", pointLights.size());
-        currentShader.setInt("spotLightCount", spotLights.size());
+        lightingShader.setInt("dirLightCount", dirLights.size());
+        lightingShader.setInt("pointLightCount", pointLights.size());
+        lightingShader.setInt("spotLightCount", spotLights.size());
 
         //sending lights to shader
         for(int i = 0; i < dirLights.size(); i++) {
-            currentShader.setVec3("dirLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(dirLights[i].direction, 0.0f)));
+            lightingShader.setVec3("dirLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(dirLights[i].direction, 0.0f)));
         }
         for(int i = 0; i < pointLights.size(); i++) {
-            currentShader.setVec3("pointLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(pointLights[i].position, 1.0f)));
+            lightingShader.setVec3("pointLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(pointLights[i].position, 1.0f)));
         }
         for(int i = 0; i < spotLights.size(); i++) {
-            currentShader.setVec3("spotLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(spotLights[i].direction, 0.0f)));
-            currentShader.setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(spotLights[i].position, 1.0f)));
+            lightingShader.setVec3("spotLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(spotLights[i].direction, 0.0f)));
+            lightingShader.setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(spotLights[i].position, 1.0f)));
         }
+
         currentMesh->getMaterial().setTextures();
 
         //finally, rendering
+        currentShader.use();
         glBindVertexArray(currentMesh->getVAO());
         glDrawElements(GL_TRIANGLES, currentMesh->getIndexCount(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
@@ -431,7 +433,7 @@ void Game::render() {
 
     //getting matrices
     glm::mat4 view = camera.getViewMatrix();
-    glm::mat3 invView = glm::mat3(glm::inverse(view));
+    glm::mat3 invView = glm::mat3(glm::inverse(view)); //needed for reflections, because calculations are done in view space
     glm::mat4 projection = glm::perspective(glm::radians(camera.fov), aspectRatio, 0.1f, 100.0f);
 
     //render opaque models

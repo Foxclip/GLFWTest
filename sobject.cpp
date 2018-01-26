@@ -324,3 +324,7 @@ std::vector<Mesh*>& Model::getMeshes() {
 Shader Model::getShader() {
     return shader;
 }
+
+void Model::setShader(Shader shader) {
+    this->shader = shader;
+}

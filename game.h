@@ -18,6 +18,10 @@ public:
     void mouseCb(GLFWwindow* window, double xpos, double ypos);
     void scrCb(GLFWwindow* window, double xoffset, double yoffset);
 
+    Shader lightingShader;
+    Shader zShader;
+    Shader uniformShader;
+
 private:
     GLFWwindow* window;
     unsigned int screenWidth = 800;
@@ -32,10 +36,6 @@ private:
 
     Camera camera = Camera(0.0f, 4.0f, 4.0f, 0.0f, 1.0f, 0.0f);
     //Camera camera = Camera(3.0f, 4.0f, 2.0f, 0.0f, 1.0f, 0.0f, 0.0f, -90.0f);
-
-    Shader lightingShader;
-    Shader zShader;
-    Shader uniformShader;
 
     unsigned int screenFrameBuffer;
     unsigned int screenColorBuffer;

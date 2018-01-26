@@ -1,5 +1,7 @@
 #version 330 core
 
+in vec4 FragPos;
+
 float near = 0.1;
 float far = 100.0;
 

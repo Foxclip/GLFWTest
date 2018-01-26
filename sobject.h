@@ -114,8 +114,9 @@ public:
     void rotate(float yaw, float pitch, float roll);
     glm::vec3 getScale();
     void setScale(glm::vec3 scale);
-    std::vector<Mesh*>& getMeshes();
+    std::vector<Mesh*>& getMeshes(); //TODO use smart pointers here
     Shader getShader();
+    void setShader(Shader shader);
 
 private:
 
@@ -125,7 +126,7 @@ private:
     glm::vec3 ypr;
     glm::vec3 scale;
 
-    //get rid of this
+    //TODO get rid of this
     GLenum edge;
 
     std::vector<Mesh*> meshes;
