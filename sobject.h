@@ -29,15 +29,7 @@ private:
 
 static std::vector<Texture> loaded_textures;
 
-class Material {
-public:
-    Material() {}
-    Material(Shader shader, glm::vec3 diffuseColor, glm::vec3 specularColor, glm::vec3 mirrorColor, float exponent, float reflectivity, Texture diffuseTexture, Texture specularTexture, bool hasDiffuse, bool hasSpecular);
-    Shader getShader();
-    void setTextures();
-
-private:
-    Shader shader;
+struct Material {
     glm::vec3 diffuseColor;
     glm::vec3 specularColor;
     glm::vec3 mirrorColor;
@@ -45,8 +37,8 @@ private:
     float reflectivity;
     Texture diffuseTexture;
     Texture specularTexture;
-    bool hasDiffuse = false;
-    bool hasSpecular = false;
+    bool hasDiffuse;
+    bool hasSpecular;
 };
 
 struct DirectionalLight {
@@ -90,6 +82,7 @@ public:
     unsigned int getVAO();
     unsigned int getIndexCount();
     void setupMesh();
+    void setTextures(Shader *shader);
 
 private:
 
@@ -106,7 +99,7 @@ private:
 class Model {
 public:
     Model() {}
-    Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge);
+    Model(char *path, Shader *shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge);
     glm::vec3 getPosition();
     void setPosition(float x, float y, float z);
     glm::vec3 getRotation();
@@ -115,12 +108,12 @@ public:
     glm::vec3 getScale();
     void setScale(glm::vec3 scale);
     std::vector<Mesh*>& getMeshes(); //TODO use smart pointers here
-    Shader getShader();
-    void setShader(Shader shader);
+    Shader *getShader();
+    void setShader(Shader *shader);
 
 private:
 
-    Shader shader;
+    Shader *shader; //TODO use smart pointers here
 
     glm::vec3 position;
     glm::vec3 ypr;

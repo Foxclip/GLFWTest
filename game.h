@@ -21,6 +21,8 @@ public:
     Shader lightingShader;
     Shader zShader;
     Shader uniformShader;
+    Shader pointShader;
+    Shader fragShader;
 
 private:
     GLFWwindow* window;

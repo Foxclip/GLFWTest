@@ -21,41 +21,6 @@ unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation
     return texture;
 }
 
-Material::Material(Shader shader, glm::vec3 diffuseColor, glm::vec3 specularColor, glm::vec3 mirrorColor, float exponent, float reflectivity, Texture diffuseTexture, Texture specularTexture, bool hasDiffuse, bool hasSpecular) {
-    this->shader = shader;
-    this->diffuseColor = diffuseColor;
-    this->specularColor = specularColor;
-    this->mirrorColor = mirrorColor;
-    this->exponent = exponent;
-    this->reflectivity = reflectivity;
-    this->diffuseTexture = diffuseTexture;
-    this->specularTexture = specularTexture;
-    this->hasDiffuse = hasDiffuse;
-    this->hasSpecular = hasSpecular;
-}
-
-Shader Material::getShader() {
-    return shader;
-}
-
-void Material::setTextures() {
-    shader.use();
-    shader.setBool("material.hasDiffuse", hasDiffuse);
-    shader.setBool("material.hasSpecular", hasSpecular);
-    shader.setVec3("material.diffuseColor", diffuseColor);
-    shader.setVec3("material.specularColor", specularColor);
-    shader.setVec3("material.mirrorColor", mirrorColor);
-    shader.setFloat("material.shininess", exponent);
-    shader.setFloat("material.reflectivity", reflectivity);
-    shader.setInt("material.diffuse", 1);
-    shader.setInt("material.specular", 2);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, diffuseTexture.getId());
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, specularTexture.getId());
-}
-
-
 Mesh::Mesh(float x, float y, float z, float scale, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices) {
 
     position = {x, y, z};
@@ -120,6 +85,23 @@ void Mesh::setupMesh() {
 
 }
 
+void Mesh::setTextures(Shader *shader) {
+    shader->use();
+    shader->setBool("material.hasDiffuse", material.hasDiffuse);
+    shader->setBool("material.hasSpecular", material.hasSpecular);
+    shader->setVec3("material.diffuseColor", material.diffuseColor);
+    shader->setVec3("material.specularColor", material.specularColor);
+    shader->setVec3("material.mirrorColor", material.mirrorColor);
+    shader->setFloat("material.shininess", material.exponent);
+    shader->setFloat("material.reflectivity", material.reflectivity);
+    shader->setInt("material.diffuse", 1);
+    shader->setInt("material.specular", 2);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, material.diffuseTexture.getId());
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, material.specularTexture.getId());
+}
+
 Texture::Texture(std::string filename, GLenum edge) {
     this->path = filename;
     id = loadTexture(filename, edge);
@@ -129,7 +111,7 @@ unsigned int Texture::getId() {
     return id;
 }
 
-Model::Model(char *path, Shader shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge) {
+Model::Model(char *path, Shader *shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, GLenum edge) {
     this->shader = shader;
     this->edge = edge;
     loadModel(path);
@@ -253,12 +235,14 @@ Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene, ai_real nodeX, ai_r
     glm::vec3 specularColorGlmVec(specularColor.r, specularColor.g, specularColor.b);
     glm::vec3 mirrorColorGlmVec(mirrorColor.r, mirrorColor.g, mirrorColor.b);
 
-    Material newMaterial(    shader,
+    Material newMaterial = {
                              diffuseColorGlmVec, specularColorGlmVec, mirrorColorGlmVec,
                              exponent, reflectivity,
                              diffuseMap, specularMap,
                              hasDiffuse, hasSpecular
-                        );
+    };
+    //newMaterial.diffuseColor = diffuseColorGlmVec;
+    //newMaterial
 
     //return std::make_unique<Mesh>(Mesh(0.0f, 0.0f, 0.0f, 1.0f, newMaterial, vertices, indices));
     return new Mesh(nodeX, nodeY, nodeZ, 1.0f, newMaterial, vertices, indices);
@@ -321,10 +305,10 @@ std::vector<Mesh*>& Model::getMeshes() {
     return meshes;
 }
 
-Shader Model::getShader() {
+Shader *Model::getShader() {
     return shader;
 }
 
-void Model::setShader(Shader shader) {
+void Model::setShader(Shader *shader) {
     this->shader = shader;
 }

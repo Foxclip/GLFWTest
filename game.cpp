@@ -69,7 +69,7 @@ void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, gl
 }
 
 Model& Game::addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent, GLenum edge) {
-    Model model(path, lightingShader, pos, rot, scl, edge);
+    Model model(path, &lightingShader, pos, rot, scl, edge);
     if(transparent) {
         transparentModels.push_back(model);
         return transparentModels.back();
@@ -136,6 +136,7 @@ void Game::initGLFW() {
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_PROGRAM_POINT_SIZE);
 
     initFrameBuffer();
 
@@ -212,9 +213,12 @@ void Game::initGLFW() {
 }
 
 void Game::initFrameBuffer() {
+
+    //setting up framebuffers
     glGenFramebuffers(1, &screenFrameBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
 
+    //setting up color buffer
     glGenTextures(1, &screenColorBuffer);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, screenColorBuffer);
@@ -222,22 +226,24 @@ void Game::initFrameBuffer() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0);
-
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenColorBuffer, 0);
 
+    //setting up render buffer
     unsigned int rbo;
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
+    //if some error occured
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cout << "Framebuffer is not complete\n";
         exit(-1);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    //setting up screen quad
 
     glGenVertexArrays(1, &screenVAO);
     glGenBuffers(1, &screenVBO);
@@ -328,17 +334,13 @@ void Game::processInput(GLFWwindow * window) {
 }
 
 void Game::initShaders() {
-
     lightingShader = Shader("plain.vert", "color.frag", "Lighting");
-
     zShader = Shader("plain.vert", "z.frag", "ZShader");
-
     uniformShader = Shader("plain.vert", "uniform.frag", "Uniform");
-
+    pointShader = Shader("point.vert", "uniform.frag", "Point");
+    fragShader = Shader("plain.vert", "frag.frag", "Frag");
     screenShader = Shader("quad.vert", "quad.frag", "Screen");
-
     skyboxShader = Shader("skybox.vert", "skybox.frag", "Skybox");
-
 }
 
 void Game::processPhysics() {
@@ -353,9 +355,10 @@ void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, glm::mat4 invVi
     glm::vec3 modelScale = currentModel.getScale();
 
     //preparing shader
-    Shader currentShader = currentModel.getShader();
-    currentShader.use();
-    currentShader.setMat3("invView", invViewMatrix);
+    Shader *currentShader = currentModel.getShader();
+    //Shader *currentShader = &lightingShader;
+    currentShader->use();
+    currentShader->setMat3("invView", invViewMatrix);
     //uniformShader.setVec4("ourColor", 0.5f, 0.1f, 0.1f, 1.0f);
 
     //translating and rotating
@@ -373,17 +376,17 @@ void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, glm::mat4 invVi
         //preparations
         glm::vec3 meshPosition = currentMesh->getPosition();
         float meshScale = currentMesh->getScale();
-        currentShader.setMat4("view", viewMatrix);
-        currentShader.setMat4("projection", projectionMatrix);
+        currentShader->setMat4("view", viewMatrix);
+        currentShader->setMat4("projection", projectionMatrix);
 
         //transforms
         glm::mat4 meshModelMatrix;
         meshModelMatrix = glm::translate(modelMatrix, meshPosition);
         meshModelMatrix = glm::scale(meshModelMatrix, glm::vec3(meshScale));
-        currentShader.setMat4("model", meshModelMatrix);
+        currentShader->setMat4("model", meshModelMatrix);
 
         glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * meshModelMatrix))); //change to modelMatrix in case of problems with normals
-        currentShader.setMat3("newNormal", normalMatrix);
+        currentShader->setMat3("newNormal", normalMatrix);
 
         //TODO do this only if currentShader == lightingShader
 
@@ -404,13 +407,14 @@ void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, glm::mat4 invVi
             lightingShader.setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(spotLights[i].position, 1.0f)));
         }
 
-        currentMesh->getMaterial().setTextures();
+        currentMesh->setTextures(currentShader);
 
         //finally, rendering
-        currentShader.use();
+        currentShader->use();
         glBindVertexArray(currentMesh->getVAO());
         glDrawElements(GL_TRIANGLES, currentMesh->getIndexCount(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
+
     }
 }
 
