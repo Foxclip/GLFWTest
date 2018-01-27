@@ -9,13 +9,16 @@ char* readFile(std::string filename) {
         contents.push_back('\n');
     }
     char* new_str = (char*)malloc(sizeof(char)*strlen(contents.c_str()));
-    //strcpy(new_str, contents.c_str());
     return _strdup(contents.c_str());
 }
 
 int compileShader(std::string filename, GLenum type, char* name) {
     int shader = glCreateShader(type);
     char* source = readFile(shaderFolderName + "/" + filename);
+    if(strcmp(source, "") == 0) {
+        std::cout << "Cannot open shader source: " << shaderFolderName + "/" + filename << "\n\n";
+        exit(-1);
+    }
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
     int success;

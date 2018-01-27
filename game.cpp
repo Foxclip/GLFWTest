@@ -290,8 +290,6 @@ unsigned int Game::loadCubeMap(std::vector<std::string> faces) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-    //glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
     return textureID;
 }
 
@@ -358,6 +356,7 @@ void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, glm::mat4 invVi
     Shader currentShader = currentModel.getShader();
     currentShader.use();
     currentShader.setMat3("invView", invViewMatrix);
+    //uniformShader.setVec4("ourColor", 0.5f, 0.1f, 0.1f, 1.0f);
 
     //translating and rotating
     glm::mat4 modelMatrix;
@@ -385,6 +384,8 @@ void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, glm::mat4 invVi
 
         glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * meshModelMatrix))); //change to modelMatrix in case of problems with normals
         currentShader.setMat3("newNormal", normalMatrix);
+
+        //TODO do this only if currentShader == lightingShader
 
         //TODO do this only when number of lights changes
         lightingShader.setInt("dirLightCount", dirLights.size());
