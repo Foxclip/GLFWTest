@@ -18,7 +18,7 @@ const std::string shaderFolderName = "shaders";
 class Shader {
 public:
     Shader() {}
-    Shader(std::string vertexPath, std::string fragmentPath, char* name);
+    Shader(std::string vertexPath, std::string fragmentPath, std::string geometryPath = "");
     void use();
     unsigned int getID();
     void setBool(const std::string &name, bool value) const;

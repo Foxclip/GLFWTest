@@ -356,13 +356,13 @@ void Game::processInput(GLFWwindow * window) {
 }
 
 void Game::initShaders() {
-    lightingShader = Shader("plain.vert", "color.frag", "Lighting");
-    zShader = Shader("plain.vert", "z.frag", "ZShader");
-    uniformShader = Shader("plain.vert", "uniform.frag", "Uniform");
-    pointShader = Shader("point.vert", "uniform.frag", "Point");
-    fragShader = Shader("plain.vert", "frag.frag", "Frag");
-    screenShader = Shader("quad.vert", "quad.frag", "Screen");
-    skyboxShader = Shader("skybox.vert", "skybox.frag", "Skybox");
+    lightingShader = Shader("plain.vert", "color.frag");
+    zShader = Shader("plain.vert", "z.frag");
+    uniformShader = Shader("plain.vert", "uniform.frag");
+    pointShader = Shader("point.vert", "uniform.frag");
+    fragShader = Shader("plain.vert", "frag.frag");
+    screenShader = Shader("quad.vert", "quad.frag");
+    skyboxShader = Shader("skybox.vert", "skybox.frag");
 }
 
 void Game::processPhysics() {
