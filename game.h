@@ -68,6 +68,7 @@ private:
     void processPhysics();
     void renderModel(Model model, glm::mat4 view);
     void render();
+    void updateLights();
 
 };
 

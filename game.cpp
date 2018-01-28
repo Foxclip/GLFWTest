@@ -33,6 +33,7 @@ void Game::addDirectionalLight(float intensity, glm::vec3 color, glm::vec3 direc
     lightingShader.setFloat("dirLights["+std::to_string(index)+"].intensity", dirLights[index].intensity);
     lightingShader.setVec3("dirLights["+std::to_string(index)+"].color", dirLights[index].color);
     lightingShader.setVec3("dirLights["+std::to_string(index)+"].ambient", dirLights[index].ambient);
+    updateLights();
 }
 
 void Game::addPointLight(float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient) {
@@ -48,6 +49,7 @@ void Game::addPointLight(float intensity, glm::vec3 color, glm::vec3 position, f
     lightingShader.setFloat("pointLights["+std::to_string(index)+"].linear", pointLights[index].linear);
     lightingShader.setFloat("pointLights["+std::to_string(index)+"].quadratic", pointLights[index].quadratic);
     lightingShader.setVec3("pointLights["+std::to_string(index)+"].ambient", pointLights[index].ambient);
+    updateLights();
 }
 
 void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff) {
@@ -66,6 +68,7 @@ void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, gl
     lightingShader.setVec3("spotLights["+std::to_string(index)+"].ambient", spotLights[index].ambient);
     lightingShader.setFloat("spotLights["+std::to_string(index)+"].cutOff", spotLights[index].cutOff);
     lightingShader.setFloat("spotLights["+std::to_string(index)+"].outerCutOff", spotLights[index].outerCutOff);
+    updateLights();
 }
 
 Model& Game::addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent, GLenum edge) {
@@ -400,25 +403,6 @@ void Game::renderModel(Model currentModel, glm::mat4 viewMatrix) {
         glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * meshModelMatrix))); //change to modelMatrix in case of problems with normals
         currentShader->setMat3("newNormal", normalMatrix);
 
-        //TODO do this only if currentShader == lightingShader
-
-        //TODO do this only when number of lights changes
-        lightingShader.setInt("dirLightCount", dirLights.size());
-        lightingShader.setInt("pointLightCount", pointLights.size());
-        lightingShader.setInt("spotLightCount", spotLights.size());
-
-        //sending lights to shader
-        for(int i = 0; i < dirLights.size(); i++) {
-            lightingShader.setVec3("dirLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(dirLights[i].direction, 0.0f)));
-        }
-        for(int i = 0; i < pointLights.size(); i++) {
-            lightingShader.setVec3("pointLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(pointLights[i].position, 1.0f)));
-        }
-        for(int i = 0; i < spotLights.size(); i++) {
-            lightingShader.setVec3("spotLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(spotLights[i].direction, 0.0f)));
-            lightingShader.setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(spotLights[i].position, 1.0f)));
-        }
-
         currentMesh->setTextures(currentShader);
 
         //finally, rendering
@@ -451,9 +435,9 @@ void Game::render() {
     //setting matrices
 
     //view
-    glm::mat4 view = camera.getViewMatrix();
+    glm::mat4 viewMatrix = camera.getViewMatrix();
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(viewMatrix));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     //projection
@@ -463,18 +447,31 @@ void Game::render() {
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     //inverted view
-    glm::mat4 invView = glm::inverse(view); //needed for reflections, because calculations are done in view space
+    glm::mat4 invView = glm::inverse(viewMatrix); //needed for reflections, because calculations are done in view space
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
     glBufferSubData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(invView));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+    //sending lights to shader
+    lightingShader.use();
+    for(int i = 0; i < dirLights.size(); i++) {
+        lightingShader.setVec3("dirLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(dirLights[i].direction, 0.0f)));
+    }
+    for(int i = 0; i < pointLights.size(); i++) {
+        lightingShader.setVec3("pointLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(pointLights[i].position, 1.0f)));
+    }
+    for(int i = 0; i < spotLights.size(); i++) {
+        lightingShader.setVec3("spotLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(spotLights[i].direction, 0.0f)));
+        lightingShader.setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(spotLights[i].position, 1.0f)));
+    }
+
     //render opaque models
     glEnable(GL_CULL_FACE);
     for(Model& model : opaqueModels) {
-        renderModel(model, view);
+        renderModel(model, viewMatrix);
     }
 
-    glm::mat4 skyboxView = glm::mat4(glm::mat3(view)); //no translation
+    glm::mat4 skyboxView = glm::mat4(glm::mat3(viewMatrix)); //no translation
     glDisable(GL_CULL_FACE);
     glDepthMask(GL_FALSE);
     skyboxShader.use();
@@ -492,7 +489,7 @@ void Game::render() {
     //render transparent models
     glDisable(GL_CULL_FACE);
     for(std::map<float, Model>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-        renderModel(it->second, view);
+        renderModel(it->second, viewMatrix);
     }
 
     //render screen quad
@@ -509,6 +506,13 @@ void Game::render() {
     //final actions
     glfwSwapBuffers(window);
     glfwPollEvents();
+}
+
+void Game::updateLights() {
+    lightingShader.use();
+    lightingShader.setInt("dirLightCount", dirLights.size());
+    lightingShader.setInt("pointLightCount", pointLights.size());
+    lightingShader.setInt("spotLightCount", spotLights.size());
 }
 
 void Game::start() {
