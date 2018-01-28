@@ -277,8 +277,10 @@ void Game::initFrameBuffer() {
 
 void Game::initUBO() {
 
-    unsigned int matrixIndex = glGetUniformBlockIndex(lightingShader.getID(), "Matrices");
-    glUniformBlockBinding(lightingShader.getID(), matrixIndex, 0);
+    unsigned int matrixIndexLighting = glGetUniformBlockIndex(lightingShader.getID(), "Matrices");
+    unsigned int matrixIndexSkybox = glGetUniformBlockIndex(skyboxShader.getID(), "Matrices");
+    glUniformBlockBinding(lightingShader.getID(), matrixIndexLighting, 0);
+    glUniformBlockBinding(skyboxShader.getID(), matrixIndexSkybox, 0);
 
     glGenBuffers(1, &uboMatrices);
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
@@ -476,8 +478,7 @@ void Game::render() {
     glDisable(GL_CULL_FACE);
     glDepthMask(GL_FALSE);
     skyboxShader.use();
-    skyboxShader.setMat4("projection", projection);
-    skyboxShader.setMat4("view", skyboxView);
+    skyboxShader.setMat4("skyboxView", skyboxView);
     glBindVertexArray(skyboxVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glDepthMask(GL_TRUE);
