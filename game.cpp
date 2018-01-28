@@ -208,6 +208,8 @@ void Game::initGLFW() {
 
     glDepthFunc(GL_LEQUAL);
 
+    initUBO();
+
     //glBindVertexArray(0);
 
 }
@@ -271,6 +273,21 @@ void Game::initFrameBuffer() {
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
+}
+
+void Game::initUBO() {
+
+    unsigned int matrixIndex = glGetUniformBlockIndex(lightingShader.getID(), "Matrices");
+    glUniformBlockBinding(lightingShader.getID(), matrixIndex, 0);
+
+    glGenBuffers(1, &uboMatrices);
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+    unsigned int bufferSize = 3*sizeof(glm::mat4);
+    glBufferData(GL_UNIFORM_BUFFER, bufferSize, NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, bufferSize);
+
 }
 
 unsigned int Game::loadCubeMap(std::vector<std::string> faces) {
@@ -347,7 +364,7 @@ void Game::processPhysics() {
     opaqueModels[0].rotate(1.0f, 0.0f, 0.0f);
 }
 
-void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, glm::mat4 invViewMatrix, glm::mat4 projectionMatrix) {
+void Game::renderModel(Model currentModel, glm::mat4 viewMatrix) {
 
     //getting transforms
     glm::vec3 modelPosition = currentModel.getPosition();
@@ -356,10 +373,7 @@ void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, glm::mat4 invVi
 
     //preparing shader
     Shader *currentShader = currentModel.getShader();
-    //Shader *currentShader = &lightingShader;
     currentShader->use();
-    currentShader->setMat3("invView", invViewMatrix);
-    //uniformShader.setVec4("ourColor", 0.5f, 0.1f, 0.1f, 1.0f);
 
     //translating and rotating
     glm::mat4 modelMatrix;
@@ -373,14 +387,10 @@ void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, glm::mat4 invVi
     //rendering meshes
     for(Mesh* currentMesh: meshes) {
 
-        //preparations
-        glm::vec3 meshPosition = currentMesh->getPosition();
-        float meshScale = currentMesh->getScale();
-        currentShader->setMat4("view", viewMatrix);
-        currentShader->setMat4("projection", projectionMatrix);
-
         //transforms
         glm::mat4 meshModelMatrix;
+        glm::vec3 meshPosition = currentMesh->getPosition();
+        float meshScale = currentMesh->getScale();
         meshModelMatrix = glm::translate(modelMatrix, meshPosition);
         meshModelMatrix = glm::scale(meshModelMatrix, glm::vec3(meshScale));
         currentShader->setMat4("model", meshModelMatrix);
@@ -436,15 +446,30 @@ void Game::render() {
     glEnable(GL_DEPTH_TEST);
     glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
 
-    //getting matrices
+    //setting matrices
+
+    //view
     glm::mat4 view = camera.getViewMatrix();
-    glm::mat3 invView = glm::mat3(glm::inverse(view)); //needed for reflections, because calculations are done in view space
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    //projection
     glm::mat4 projection = glm::perspective(glm::radians(camera.fov), aspectRatio, 0.1f, 100.0f);
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    //inverted view
+    glm::mat4 invView = glm::inverse(view); //needed for reflections, because calculations are done in view space
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(invView));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     //render opaque models
     glEnable(GL_CULL_FACE);
     for(Model& model : opaqueModels) {
-        renderModel(model, view, invView, projection);
+        renderModel(model, view);
     }
 
     glm::mat4 skyboxView = glm::mat4(glm::mat3(view)); //no translation
@@ -466,7 +491,7 @@ void Game::render() {
     //render transparent models
     glDisable(GL_CULL_FACE);
     for(std::map<float, Model>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-        renderModel(it->second, view, invView, projection);
+        renderModel(it->second, view);
     }
 
     //render screen quad

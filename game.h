@@ -50,6 +50,8 @@ private:
     unsigned int skyboxVBO;
     Shader skyboxShader;
 
+    unsigned int uboMatrices;
+
     std::vector<Mesh> cubes;
     std::vector<Model> opaqueModels;
     std::vector<Model> transparentModels;
@@ -59,11 +61,12 @@ private:
 
     void initGLFW();
     void initFrameBuffer();
+    void initUBO();
     unsigned int loadCubeMap(std::vector<std::string> faces);
     void processInput(GLFWwindow* window);
     void initShaders();
     void processPhysics();
-    void renderModel(Model model, glm::mat4 view, glm::mat4 invView, glm::mat4 projection);
+    void renderModel(Model model, glm::mat4 view);
     void render();
 
 };
