@@ -13,7 +13,6 @@ struct Material {
 	vec3 mirrorColor;
 	sampler2D diffuse;
 	sampler2D specular;
-	//sampler2D emission;
 	bool hasDiffuse;
 	bool hasSpecular;
 	float shininess;

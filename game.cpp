@@ -356,7 +356,7 @@ void Game::processInput(GLFWwindow * window) {
 }
 
 void Game::initShaders() {
-    lightingShader = Shader("plain.vert", "color.frag");
+    lightingShader = Shader("plain.vert", "color.frag", "plain.geom");
     zShader = Shader("plain.vert", "z.frag");
     uniformShader = Shader("plain.vert", "uniform.frag");
     pointShader = Shader("point.vert", "uniform.frag");
