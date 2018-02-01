@@ -106,6 +106,7 @@ void Game::scrCb(GLFWwindow * window, double xoffset, double yoffset) {
 }
 
 void Game::initGLFW() {
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -148,16 +149,6 @@ void Game::initGLFW() {
     glEnable(GL_PROGRAM_POINT_SIZE);
 
     initFrameBuffer();
-
-    std::vector<std::string> faces = {
-        "skybox/right.jpg",
-        "skybox/left.jpg",
-        "skybox/top.jpg",
-        "skybox/bottom.jpg",
-        "skybox/back.jpg",
-        "skybox/front.jpg"
-    };
-    skyboxTexture = loadCubeMap(faces);
 
     float skyboxVertices[] = {
 
@@ -439,7 +430,7 @@ void Game::render() {
 
     //initializing
     glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(bgColorR, bgColorG, bgColorB, 1.0f);
     glStencilMask(0xFF);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
@@ -478,15 +469,8 @@ void Game::render() {
         lightingShader.setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(spotLights[i].position, 1.0f)));
     }
 
-    //render normals
-    normalShader.use();
-    normalShader.setVec4("ourColor", glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
-    for(Model& model: opaqueModels) {
-        renderModel(model, viewMatrix, &normalShader);
-    }
-    for(Model& model: transparentModels) {
-        renderModel(model, viewMatrix, &normalShader);
-    }
+    lightingShader.setVec3("bgColor", glm::vec3(bgColorR, bgColorG, bgColorB));
+    lightingShader.setBool("skyboxEnabled", cubemapEnabled);
 
     //render opaque models
     glEnable(GL_CULL_FACE);
@@ -495,14 +479,16 @@ void Game::render() {
     }
 
     //render skybox
-    glm::mat4 skyboxView = glm::mat4(glm::mat3(viewMatrix)); //no translation
-    glDisable(GL_CULL_FACE);
-    glDepthMask(GL_FALSE);
-    skyboxShader.use();
-    skyboxShader.setMat4("skyboxView", skyboxView);
-    glBindVertexArray(skyboxVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glDepthMask(GL_TRUE);
+    if(cubemapEnabled) {
+        glm::mat4 skyboxView = glm::mat4(glm::mat3(viewMatrix)); //no translation
+        glDisable(GL_CULL_FACE);
+        glDepthMask(GL_FALSE);
+        skyboxShader.use();
+        skyboxShader.setMat4("skyboxView", skyboxView);
+        glBindVertexArray(skyboxVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDepthMask(GL_TRUE);
+    }
 
     //sort transparent models
     std::map<float, Model> sorted;
@@ -518,7 +504,7 @@ void Game::render() {
 
     //render screen quad
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     screenShader.use();
     glBindVertexArray(screenVAO);
@@ -537,6 +523,29 @@ void Game::updateLights() {
     lightingShader.setInt("dirLightCount", dirLights.size());
     lightingShader.setInt("pointLightCount", pointLights.size());
     lightingShader.setInt("spotLightCount", spotLights.size());
+}
+
+void Game::setCubeMap(std::string folder) {
+    std::vector<std::string> faces = {
+        folder + "/right.jpg",
+        folder + "/left.jpg",
+        folder + "/top.jpg",
+        folder + "/bottom.jpg",
+        folder + "/back.jpg",
+        folder + "/front.jpg"
+    };
+    glDeleteTextures(1, &skyboxTexture);
+    skyboxTexture = loadCubeMap(faces);
+}
+
+void Game::enableCubeMap() {
+    cubemapEnabled = true;
+}
+
+void Game::setBgColor(float r, float g, float b) {
+    bgColorR = r;
+    bgColorG = g;
+    bgColorB = b;
 }
 
 void Game::start() {

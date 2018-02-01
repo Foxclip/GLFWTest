@@ -62,6 +62,8 @@ uniform SpotLight spotLight;
 uniform Material material;
 
 uniform samplerCube skybox;
+uniform vec3 bgColor;
+uniform bool skyboxEnabled;
 
 vec3 calcDirLightDiffuse(DirLight light, vec3 normal) {
 
@@ -233,7 +235,12 @@ void main() {
 
 	vec3 I = normalize(FragPos);
 	vec3 R = reflect(I, norm);
-	vec3 reflectColor = texture(skybox, vec3(InvView * vec4(R, 0.0))).rgb * material.mirrorColor;
+	vec3 reflectColor;
+	if(skyboxEnabled) {
+		reflectColor = texture(skybox, vec3(InvView * vec4(R, 0.0))).rgb * material.mirrorColor;
+	} else {
+		reflectColor = bgColor * material.mirrorColor;
+	}
 	vec3 result = mix(resultDiffuse, reflectColor, material.reflectivity) + resultSpecular;
 
 	FragColor = vec4(result, opacity);

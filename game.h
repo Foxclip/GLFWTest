@@ -13,6 +13,9 @@ public:
     void addPointLight(float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient);
     void addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff);
     Model& addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent = false, GLenum edge = GL_REPEAT);
+    void setCubeMap(std::string folder);
+    void enableCubeMap();
+    void setBgColor(float r, float g, float b);
 
     void frmbuf_size_cb(GLFWwindow* window, int width, int height);
     void mouseCb(GLFWwindow* window, double xpos, double ypos);
@@ -59,6 +62,11 @@ private:
     std::vector<DirectionalLight> dirLights;
     std::vector<PointLight> pointLights;
     std::vector<SpotLight> spotLights;
+
+    bool cubemapEnabled = false;
+    float bgColorR = 0.0f;
+    float bgColorG = 0.0f;
+    float bgColorB = 0.0f;
 
     void initGLFW();
     void initFrameBuffer();
