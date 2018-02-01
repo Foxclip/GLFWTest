@@ -25,12 +25,13 @@ int compileShader(std::string filename, GLenum type) {
     char infolog[512];
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if(!success) {
-        glGetShaderInfoLog(shader, 4096, NULL, infolog);
+        glGetShaderInfoLog(shader, 1024, NULL, infolog);
         std::string typestr;
         switch(type) {
             case GL_VERTEX_SHADER:   typestr = "Vertex";   break;
             case GL_FRAGMENT_SHADER: typestr = "Fragment"; break;
             case GL_GEOMETRY_SHADER: typestr = "Geometry"; break;
+            default: typestr = "Unknown";
         }
         std::cout << typestr << " shader compilation failed: " << filename << "\n" << infolog << "\n";
     }

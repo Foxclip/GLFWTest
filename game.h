@@ -23,6 +23,7 @@ public:
     Shader uniformShader;
     Shader pointShader;
     Shader fragShader;
+    Shader normalShader;
 
 private:
     GLFWwindow* window;
@@ -66,7 +67,7 @@ private:
     void processInput(GLFWwindow* window);
     void initShaders();
     void processPhysics();
-    void renderModel(Model model, glm::mat4 view);
+    void renderModel(Model model, glm::mat4 view, Shader *overrideShader = nullptr);
     void render();
     void updateLights();
 

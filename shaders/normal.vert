@@ -7,7 +7,8 @@ layout (location = 2) in vec2 aTexCoords;
 out vData {
 	vec2 TexCoords;
 	vec3 Normal;
-	vec3 FragPos;	
+	vec4 ClipNormal;
+	vec3 FragPos;
 	mat4 InvView;
 } vs_out;
 
@@ -22,6 +23,7 @@ uniform mat3 newNormal;
 void main() {
 	vs_out.TexCoords = aTexCoords;
 	vs_out.Normal = newNormal * aNormal; //view space normals
+	vs_out.ClipNormal = projection * vec4(vs_out.Normal, 0.0); //clip space normals
 	vs_out.FragPos = vec3(view * model * vec4(aPos, 1.0)); //view space positions
 	vs_out.InvView = invView;
 	gl_Position = projection * view * model * vec4(aPos, 1.0);

@@ -363,13 +363,14 @@ void Game::initShaders() {
     fragShader = Shader("plain.vert", "frag.frag");
     screenShader = Shader("quad.vert", "quad.frag");
     skyboxShader = Shader("skybox.vert", "skybox.frag");
+    normalShader = Shader("normal.vert", "uniform.frag", "normal.geom");
 }
 
 void Game::processPhysics() {
     opaqueModels[0].rotate(1.0f, 0.0f, 0.0f);
 }
 
-void Game::renderModel(Model currentModel, glm::mat4 viewMatrix) {
+void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, Shader *overrideShader) {
 
     //getting transforms
     glm::vec3 modelPosition = currentModel.getPosition();
@@ -377,7 +378,12 @@ void Game::renderModel(Model currentModel, glm::mat4 viewMatrix) {
     glm::vec3 modelScale = currentModel.getScale();
 
     //preparing shader
-    Shader *currentShader = currentModel.getShader();
+    Shader *currentShader;
+    if(overrideShader) {
+        currentShader = overrideShader;
+    } else {
+        currentShader = currentModel.getShader();
+    }
     currentShader->use();
 
     //translating and rotating
@@ -400,6 +406,7 @@ void Game::renderModel(Model currentModel, glm::mat4 viewMatrix) {
         meshModelMatrix = glm::scale(meshModelMatrix, glm::vec3(meshScale));
         currentShader->setMat4("model", meshModelMatrix);
 
+        //normal matrix
         glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * meshModelMatrix))); //change to modelMatrix in case of problems with normals
         currentShader->setMat3("newNormal", normalMatrix);
 
@@ -465,12 +472,23 @@ void Game::render() {
         lightingShader.setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(spotLights[i].position, 1.0f)));
     }
 
+    //render normals
+    normalShader.use();
+    normalShader.setVec4("ourColor", glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
+    for(Model& model: opaqueModels) {
+        renderModel(model, viewMatrix, &normalShader);
+    }
+    for(Model& model: transparentModels) {
+        renderModel(model, viewMatrix, &normalShader);
+    }
+
     //render opaque models
     glEnable(GL_CULL_FACE);
-    for(Model& model : opaqueModels) {
+    for(Model& model: opaqueModels) {
         renderModel(model, viewMatrix);
     }
 
+    //render skybox
     glm::mat4 skyboxView = glm::mat4(glm::mat3(viewMatrix)); //no translation
     glDisable(GL_CULL_FACE);
     glDepthMask(GL_FALSE);
