@@ -25,7 +25,16 @@ void GenerateLine(int index) {
 }
 
 void main() {
+	/*
 	GenerateLine(0);
 	GenerateLine(1);
 	GenerateLine(2);
+	*/
+	vec4 faceNormal = normalize(gs_in[0].ClipNormal + gs_in[1].ClipNormal + gs_in[2].ClipNormal);
+	vec4 faceCenter = (gl_in[0].gl_Position + gl_in[1].gl_Position + gl_in[2].gl_Position) / 3.0;
+	gl_Position = faceCenter;
+	EmitVertex();
+	gl_Position = faceCenter + faceNormal * MAGNITUDE;
+	EmitVertex();
+	EndPrimitive();
 }

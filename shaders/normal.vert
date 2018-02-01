@@ -25,6 +25,6 @@ void main() {
 	vs_out.Normal = newNormal * aNormal; //view space normals
 	vs_out.ClipNormal = projection * vec4(vs_out.Normal, 0.0); //clip space normals
 	vs_out.FragPos = vec3(view * model * vec4(aPos, 1.0)); //view space positions
-	vs_out.InvView = invView;
+	vs_out.InvView = invView; //inverse view matrix
 	gl_Position = projection * view * model * vec4(aPos, 1.0);
 }
