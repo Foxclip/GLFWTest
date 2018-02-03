@@ -71,15 +71,13 @@ void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, gl
     updateLights();
 }
 
-Model& Game::addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent, GLenum edge) {
-    Model model(path, &lightingShader, pos, rot, scl, edge);
-    if(transparent) {
-        transparentModels.push_back(model);
-        return transparentModels.back();
-    } else {
-        opaqueModels.push_back(model);
-        return opaqueModels.back();
-    }
+void Game::loadFile(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent, GLenum edge) {
+    ps = pos;
+    rt = rot;
+    sc = scl;
+    this->transparent = transparent;
+    edg = edge;
+    loadModel(path);
 }
 
 void Game::frmbuf_size_cb(GLFWwindow * window, int width, int height) {
@@ -364,58 +362,61 @@ void Game::initShaders() {
 }
 
 void Game::processPhysics() {
-    opaqueModels[0].rotate(1.0f, 0.0f, 0.0f);
+    //opaqueModels[0]->rotate(glm::vec3(1.0f, 0.0f, 0.0f));
 }
 
-void Game::renderModel(Model currentModel, glm::mat4 viewMatrix, Shader *overrideShader) {
+void Game::renderModel(Mesh *currentMesh, glm::mat4 viewMatrix, Shader *overrideShader) {
 
-    //getting transforms
-    glm::vec3 modelPosition = currentModel.getPosition();
-    glm::vec3 modelRotation = currentModel.getRotation();
-    glm::vec3 modelScale = currentModel.getScale();
+    ////getting transforms
+    //glm::vec3 modelPosition = currentModel.getPosition();
+    //glm::vec3 modelRotation = currentModel.getRotation();
+    //glm::vec3 modelScale = currentModel.getScale();
 
     //preparing shader
     Shader *currentShader;
     if(overrideShader) {
         currentShader = overrideShader;
     } else {
-        currentShader = currentModel.getShader();
+        currentShader = currentMesh->getShader();
     }
     currentShader->use();
 
-    //translating and rotating
-    glm::mat4 modelMatrix;
-    modelMatrix = glm::translate(modelMatrix, modelPosition);
-    glm::mat4 rotation = glm::yawPitchRoll(glm::radians(modelRotation.x), glm::radians(modelRotation.y), glm::radians(modelRotation.z));
-    modelMatrix *= rotation;
-    modelMatrix = glm::scale(modelMatrix, modelScale);
+    ////translating and rotating
+    //glm::mat4 modelMatrix;
+    //modelMatrix = glm::translate(modelMatrix, modelPosition);
+    //glm::mat4 rotation = glm::yawPitchRoll(glm::radians(modelRotation.x), glm::radians(modelRotation.y), glm::radians(modelRotation.z));
+    //modelMatrix *= rotation;
+    //modelMatrix = glm::scale(modelMatrix, modelScale);
 
-    std::vector<Mesh*>& meshes = currentModel.getMeshes();
+    //std::vector<Mesh*>& meshes = currentModel.getMeshes();
 
-    //rendering meshes
-    for(Mesh* currentMesh: meshes) {
+    ////rendering meshes
+    //for(Mesh* currentMesh: meshes) {
 
-        //transforms
-        glm::mat4 meshModelMatrix;
-        glm::vec3 meshPosition = currentMesh->getPosition();
-        float meshScale = currentMesh->getScale();
-        meshModelMatrix = glm::translate(modelMatrix, meshPosition);
-        meshModelMatrix = glm::scale(meshModelMatrix, glm::vec3(meshScale));
-        currentShader->setMat4("model", meshModelMatrix);
+    //transforms
+    glm::mat4 meshModelMatrix;
+    glm::vec3 meshPosition = currentMesh->getPosition();
+    glm::vec3 meshRotation = currentMesh->getRotation();
+    glm::vec3 meshScale = currentMesh->getScale();
+    meshModelMatrix = glm::translate(meshModelMatrix, meshPosition);
+    glm::mat4 rotation = glm::yawPitchRoll(glm::radians(meshRotation.x), glm::radians(meshRotation.y), glm::radians(meshRotation.z));
+    meshModelMatrix *= rotation;
+    meshModelMatrix = glm::scale(meshModelMatrix, meshScale);
+    currentShader->setMat4("model", meshModelMatrix);
 
-        //normal matrix
-        glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * meshModelMatrix))); //change to modelMatrix in case of problems with normals
-        currentShader->setMat3("newNormal", normalMatrix);
+    //normal matrix
+    glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * meshModelMatrix))); //change to modelMatrix in case of problems with normals
+    currentShader->setMat3("newNormal", normalMatrix);
 
-        currentMesh->setTextures(currentShader);
+    currentMesh->setTextures(currentShader);
 
-        //finally, rendering
-        currentShader->use();
-        glBindVertexArray(currentMesh->getVAO());
-        glDrawElements(GL_TRIANGLES, currentMesh->getIndexCount(), GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
+    //finally, rendering
+    currentShader->use();
+    glBindVertexArray(currentMesh->getVAO());
+    glDrawElements(GL_TRIANGLES, currentMesh->getIndexCount(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 
-    }
+    //}
 }
 
 void Game::render() {
@@ -474,7 +475,7 @@ void Game::render() {
 
     //render opaque models
     glEnable(GL_CULL_FACE);
-    for(Model& model: opaqueModels) {
+    for(Mesh *model: opaqueModels) {
         renderModel(model, viewMatrix);
     }
 
@@ -491,14 +492,14 @@ void Game::render() {
     }
 
     //sort transparent models
-    std::map<float, Model> sorted;
-    for(Model model: transparentModels) {
-        float distance = glm::length2(camera.cameraPosition - model.getPosition());
+    std::map<float, Mesh*> sorted;
+    for(Mesh *model: transparentModels) {
+        float distance = glm::length2(camera.cameraPosition - model->getPosition());
         sorted[distance] = model;
     }
     //render transparent models
     glDisable(GL_CULL_FACE);
-    for(std::map<float, Model>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
+    for(std::map<float, Mesh*>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
         renderModel(it->second, viewMatrix);
     }
 
@@ -554,4 +555,159 @@ void Game::start() {
         processPhysics();
         render();
     }
+}
+
+void Game::loadModel(std::string path) {
+    Assimp::Importer importer;
+    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        std::cout << "Failed to load model " << path << "\n" << importer.GetErrorString() << "\n";
+        return;
+    }
+    directory = path.substr(0, path.find_last_of('/'));
+    processNode(scene->mRootNode, scene);
+}
+
+void Game::processNode(aiNode* node, const aiScene* scene) {
+    aiMatrix4x4 nodeTransform = node->mTransformation;
+    ai_real nodeX = nodeTransform.a4;
+    ai_real nodeY = nodeTransform.b4;
+    ai_real nodeZ = nodeTransform.c4;
+    for(int i = 0; i < node->mNumMeshes; i++) {
+        aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
+        if(transparent) {
+            transparentModels.push_back(processMesh(mesh, scene, nodeX, nodeY, nodeZ));
+        } else {
+            opaqueModels.push_back(processMesh(mesh, scene, nodeX, nodeY, nodeZ));
+        }
+    }
+    for(int i = 0; i < node->mNumChildren; i++) {
+        processNode(node->mChildren[i], scene);
+    }
+}
+
+Mesh* Game::processMesh(aiMesh* mesh, const aiScene* scene, ai_real nodeX, ai_real nodeY, ai_real nodeZ) {
+
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+
+    for(int i = 0; i < mesh->mNumVertices; i++) {
+
+        Vertex vertex;
+
+        glm::vec3 pos;
+        pos.x = mesh->mVertices[i].x;
+        pos.y = mesh->mVertices[i].y;
+        pos.z = mesh->mVertices[i].z;
+        vertex.Position = pos;
+
+        glm::vec3 normal;
+        normal.x = mesh->mNormals[i].x;
+        normal.y = mesh->mNormals[i].y;
+        normal.z = mesh->mNormals[i].z;
+        vertex.Normal = normal;
+
+        if(mesh->mTextureCoords[0]) {
+            glm::vec2 tc;
+            tc.x = mesh->mTextureCoords[0][i].x;
+            tc.y = mesh->mTextureCoords[0][i].y;
+            vertex.TexCoords = tc;
+        } 
+        else {
+            vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+        }
+
+        vertices.push_back(vertex);
+    }
+
+    for(int i = 0; i < mesh->mNumFaces; i++) {
+        aiFace face = mesh->mFaces[i];
+        for(int j = 0; j < face.mNumIndices; j++) {
+            indices.push_back(face.mIndices[j]);
+        }
+    }
+
+    bool hasDiffuse;
+    bool hasSpecular;
+
+    Texture diffuseMap;
+    Texture specularMap;
+
+    aiColor3D diffuseColor;
+    aiColor3D specularColor;
+    aiColor3D mirrorColor;
+    ai_real exponent;
+    ai_real reflectivity;
+
+    if(mesh->mMaterialIndex >= 0) {
+
+        aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+
+        if(material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuseColor) != aiReturn_SUCCESS) {
+            diffuseColor = {0.5f, 0.5f, 0.5f};
+        }
+        if(material->Get(AI_MATKEY_COLOR_SPECULAR, specularColor) != aiReturn_SUCCESS) {
+            specularColor = {0.5f, 0.5f, 0.5f};
+        }
+        if(material->Get(AI_MATKEY_COLOR_REFLECTIVE, mirrorColor) != aiReturn_SUCCESS) {
+            mirrorColor = {0.0f, 0.0f, 0.0f};
+        }
+        if(material->Get(AI_MATKEY_SHININESS, exponent) != aiReturn_SUCCESS) {
+            exponent = 100.0f;
+        }
+        if(material->Get(AI_MATKEY_REFLECTIVITY, reflectivity) != aiReturn_SUCCESS) {
+            reflectivity = 0.0f;
+        }
+
+        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE);
+        hasDiffuse = diffuseMaps.size() > 0;
+        if(hasDiffuse) {
+            diffuseMap = diffuseMaps[0];
+        }
+        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
+        hasSpecular = specularMaps.size() > 0;
+        if(hasSpecular) {
+            specularMap = specularMaps[0];
+        }
+
+    }
+
+    glm::vec3 diffuseColorGlmVec(diffuseColor.r, diffuseColor.g, diffuseColor.b);
+    glm::vec3 specularColorGlmVec(specularColor.r, specularColor.g, specularColor.b);
+    glm::vec3 mirrorColorGlmVec(mirrorColor.r, mirrorColor.g, mirrorColor.b);
+
+    Material newMaterial = {
+                             diffuseColorGlmVec, specularColorGlmVec, mirrorColorGlmVec,
+                             exponent, reflectivity,
+                             diffuseMap, specularMap,
+                             hasDiffuse, hasSpecular
+    };
+    //newMaterial.diffuseColor = diffuseColorGlmVec;
+    //newMaterial
+
+    //return std::make_unique<Mesh>(Mesh(0.0f, 0.0f, 0.0f, 1.0f, newMaterial, vertices, indices));
+    return new Mesh(&lightingShader, glm::vec3(nodeX, nodeY, nodeZ) + ps, rt, sc, newMaterial, vertices, indices, edg);
+
+}
+
+std::vector<Texture> Game::loadMaterialTextures(aiMaterial * mat, aiTextureType type) {
+    std::vector<Texture> textures;
+    for(int i = 0; i < mat->GetTextureCount(type); i++) {
+        aiString tex_path;
+        mat->GetTexture(type, i, &tex_path);
+        bool skip = false;
+        for(int j = 0; j < loaded_textures.size(); j++) {
+            if(std::strcmp(loaded_textures[j].path.c_str(), tex_path.C_Str()) == 0) {
+                textures.push_back(loaded_textures[j]);
+                skip = true;
+                break;
+            }
+        }
+        if(!skip) {
+            Texture newTexture(directory + "/" + std::string(tex_path.C_Str()), edg);
+            textures.push_back(newTexture);
+            loaded_textures.push_back(newTexture);
+        }
+    }
+    return textures;
 }

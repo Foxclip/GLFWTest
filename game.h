@@ -12,7 +12,7 @@ public:
     void addDirectionalLight(float intensity, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient);
     void addPointLight(float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient);
     void addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff);
-    Model& addModel(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent = false, GLenum edge = GL_REPEAT);
+    void loadFile(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent = false, GLenum edge = GL_REPEAT);
     void setCubeMap(std::string folder);
     void enableCubeMap();
     void setBgColor(float r, float g, float b);
@@ -40,8 +40,8 @@ private:
     float lastY = 300.0f;
     bool firstMouse = true;
 
-    //Camera camera = Camera(0.0f, 4.0f, 4.0f, 0.0f, 1.0f, 0.0f);
-    Camera camera = Camera(0.0f, 0.0f, 4.0f, 0.0f, 1.0f, 0.0f);
+    Camera camera = Camera(0.0f, 4.0f, 4.0f, 0.0f, 1.0f, 0.0f);
+    //Camera camera = Camera(0.0f, 0.0f, 4.0f, 0.0f, 1.0f, 0.0f);
     //Camera camera = Camera(3.0f, 4.0f, 2.0f, 0.0f, 1.0f, 0.0f, 0.0f, -90.0f);
 
     unsigned int screenFrameBuffer;
@@ -58,11 +58,20 @@ private:
     unsigned int uboMatrices;
 
     std::vector<Mesh> cubes;
-    std::vector<Model> opaqueModels;
-    std::vector<Model> transparentModels;
+    std::vector<Mesh*> opaqueModels;
+    std::vector<Mesh*> transparentModels;
     std::vector<DirectionalLight> dirLights;
     std::vector<PointLight> pointLights;
     std::vector<SpotLight> spotLights;
+
+    //TODO really get rid of this
+    bool transparent = false;
+    std::string directory;
+    Shader *shader;
+    glm::vec3 ps;
+    glm::vec3 rt;
+    glm::vec3 sc;
+    GLenum edg;
 
     bool cubemapEnabled = false;
     float bgColorR = 0.0f;
@@ -76,9 +85,13 @@ private:
     void processInput(GLFWwindow* window);
     void initShaders();
     void processPhysics();
-    void renderModel(Model model, glm::mat4 view, Shader *overrideShader = nullptr);
+    void renderModel(Mesh *mesh, glm::mat4 view, Shader *overrideShader = nullptr);
     void render();
     void updateLights();
+    void loadModel(std::string path);
+    void processNode(aiNode *node, const aiScene *scene);
+    Mesh* processMesh(aiMesh* mesh, const aiScene* scene, ai_real nodeX, ai_real nodeY, ai_real nodeZ);
+    std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type);
 
 };
 
