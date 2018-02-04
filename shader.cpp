@@ -1,5 +1,7 @@
 #include "shader.h"
 
+const int INFOLOG_MAX_SIZE = 4096;
+
 char* readFile(std::string filename) {
     std::fstream file(filename);
     std::string str;
@@ -22,10 +24,10 @@ int compileShader(std::string filename, GLenum type) {
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
     int success;
-    char infolog[512];
+    char infolog[INFOLOG_MAX_SIZE];
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if(!success) {
-        glGetShaderInfoLog(shader, 1024, NULL, infolog);
+        glGetShaderInfoLog(shader, INFOLOG_MAX_SIZE, NULL, infolog);
         std::string typestr;
         switch(type) {
             case GL_VERTEX_SHADER:   typestr = "Vertex";   break;
@@ -33,7 +35,8 @@ int compileShader(std::string filename, GLenum type) {
             case GL_GEOMETRY_SHADER: typestr = "Geometry"; break;
             default: typestr = "Unknown";
         }
-        std::cout << typestr << " shader compilation failed: " << filename << "\n" << infolog << "\n";
+        //std::cout << typestr << " shader compilation failed: " << filename << "\n" << infolog << "\n";
+        std::cout << typestr << " shader compilation failed: " << "\n" << infolog << "\n";
     }
     return shader;
 }
@@ -52,14 +55,14 @@ Shader::Shader(std::string vertexPath, std::string fragmentPath, std::string geo
     }
     glLinkProgram(shaderProgram);
     int success;
-    char infolog[512];
+    char infolog[INFOLOG_MAX_SIZE];
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if(!success) {
-        glGetShaderInfoLog(shaderProgram, 4096, NULL, infolog);
+        glGetProgramInfoLog(shaderProgram, INFOLOG_MAX_SIZE, NULL, infolog);
         if(geometryPath != "") {
-            std::cout << "Shader linking failed: " << vertexPath << " | " << geometryPath << " | " << fragmentPath << "\n\n";
+            std::cout << "Shader linking failed: " << vertexPath << " | " << geometryPath << " | " << fragmentPath << "\n\n" << infolog << "\n";
         } else {
-            std::cout << "Shader linking failed: " << vertexPath << " | " << fragmentPath << "\n\n";
+            std::cout << "Shader linking failed: " << vertexPath << " | " << fragmentPath << "\n\n" << infolog << "\n";
         }
         exit(-1);
     }
