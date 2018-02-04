@@ -21,10 +21,11 @@ unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation
     return texture;
 }
 
-Mesh::Mesh(Shader * shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices, GLenum edge) {
+Mesh::Mesh(Shader *shader, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices, GLenum edge) {
+    this->position = glm::vec3(0.0f);
+    this->ypr = glm::vec3(0.0f);
+    this->scale = glm::vec3(1.0f);
     this->shader = shader;
-    this->position = pos;
-    this->scale = scl;
     this->material = material;
     this->vertices = vertices;
     this->indices = indices;
@@ -32,11 +33,11 @@ Mesh::Mesh(Shader * shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, Materia
     setupMesh();
 }
 
-glm::vec3 Mesh::getPosition() {
+glm::vec3 SObject::getPosition() {
     return position;
 }
 
-void Mesh::setPosition(glm::vec3 position) {
+void SObject::setPosition(glm::vec3 position) {
     this->position = position;
 }
 
@@ -44,7 +45,7 @@ Material Mesh::getMaterial() {
     return material;
 }
 
-glm::vec3 Mesh::getScale() {
+glm::vec3 SObject::getScale() {
     return scale;
 }
 
@@ -107,20 +108,32 @@ unsigned int Texture::getId() {
     return id;
 }
 
-glm::vec3 Mesh::getRotation() {
+glm::vec3 SObject::getRotation() {
     return ypr;
 }
 
-void Mesh::setRotation(glm::vec3 ypr) {
+void SObject::setRotation(glm::vec3 ypr) {
     this->ypr = ypr;
 }
 
-void Mesh::rotate(glm::vec3 ypr) {
+void SObject::rotate(glm::vec3 ypr) {
     this->ypr += ypr;
 }
 
-void Mesh::setScale(glm::vec3 scale) {
+void SObject::setScale(glm::vec3 scale) {
     this->scale = scale;
+}
+
+SObject * SObject::getParent() {
+    return parent;
+}
+
+void SObject::setParent(SObject *parent) {
+    this->parent = parent;
+}
+
+void SObject::addChild(SObject *object) {
+    children.push_back(object);
 }
 
 Shader *Mesh::getShader() {
@@ -129,4 +142,10 @@ Shader *Mesh::getShader() {
 
 void Mesh::setShader(Shader *shader) {
     this->shader = shader;
+}
+
+SObject::SObject(glm::vec3 pos, glm::vec3 rot, glm::vec3 scl) {
+    this->position = pos;
+    this->ypr = rot;
+    this->scale = scl;
 }

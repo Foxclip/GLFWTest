@@ -4,6 +4,13 @@
 #include "sobject.h"
 #include "camera.h"
 
+struct MeshSettings {
+    bool transparent = false;
+    std::string directory;
+    Shader *shader;
+    GLenum edg;
+};
+
 class Game {
 public:
     Game();
@@ -27,6 +34,7 @@ public:
     Shader pointShader;
     Shader fragShader;
     Shader normalShader;
+    Shader testShader;
 
 private:
     GLFWwindow* window;
@@ -57,21 +65,12 @@ private:
 
     unsigned int uboMatrices;
 
-    std::vector<Mesh> cubes;
+    std::vector<SObject*> objects;
     std::vector<Mesh*> opaqueModels;
     std::vector<Mesh*> transparentModels;
     std::vector<DirectionalLight> dirLights;
     std::vector<PointLight> pointLights;
     std::vector<SpotLight> spotLights;
-
-    //TODO really get rid of this
-    bool transparent = false;
-    std::string directory;
-    Shader *shader;
-    glm::vec3 ps;
-    glm::vec3 rt;
-    glm::vec3 sc;
-    GLenum edg;
 
     bool cubemapEnabled = false;
     float bgColorR = 0.0f;
@@ -88,10 +87,11 @@ private:
     void renderModel(Mesh *mesh, glm::mat4 view, Shader *overrideShader = nullptr);
     void render();
     void updateLights();
-    void loadModel(std::string path);
-    void processNode(aiNode *node, const aiScene *scene);
-    Mesh* processMesh(aiMesh* mesh, const aiScene* scene, ai_real nodeX, ai_real nodeY, ai_real nodeZ);
-    std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type);
+    void setLights(Shader *shader, glm::mat4 viewMatrix);
+    SObject* loadModel(std::string path, MeshSettings settings);
+    SObject* processNode(aiNode* node, const aiScene* scene, SObject *parent, MeshSettings settings);
+    Mesh* processMesh(aiMesh* mesh, const aiScene* scene, SObject *parent, MeshSettings settings);
+    std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, MeshSettings settings);
 
 };
 

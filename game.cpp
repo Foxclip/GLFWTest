@@ -72,12 +72,15 @@ void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, gl
 }
 
 void Game::loadFile(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent, GLenum edge) {
-    ps = pos;
-    rt = rot;
-    sc = scl;
-    this->transparent = transparent;
-    edg = edge;
-    loadModel(path);
+    MeshSettings settings;
+    settings.directory = "";
+    settings.shader = &lightingShader;
+    settings.transparent = transparent;
+    settings.edg = edge;
+    SObject *model = loadModel(path, settings);
+    model->setPosition(pos);
+    model->setRotation(rot);
+    model->setScale(scl);
 }
 
 void Game::frmbuf_size_cb(GLFWwindow * window, int width, int height) {
@@ -359,61 +362,78 @@ void Game::initShaders() {
     screenShader = Shader("quad.vert", "quad.frag");
     skyboxShader = Shader("skybox.vert", "skybox.frag");
     normalShader = Shader("normal.vert", "uniform.frag", "normal.geom");
+    testShader = Shader("test.vert", "test.frag", "plain.geom");
 }
 
 void Game::processPhysics() {
-    //opaqueModels[0]->rotate(glm::vec3(1.0f, 0.0f, 0.0f));
+    objects[0]->rotate(glm::vec3(1.0f, 0.0f, 0.0f));
 }
 
-void Game::renderModel(Mesh *currentMesh, glm::mat4 viewMatrix, Shader *overrideShader) {
-
-    ////getting transforms
-    //glm::vec3 modelPosition = currentModel.getPosition();
-    //glm::vec3 modelRotation = currentModel.getRotation();
-    //glm::vec3 modelScale = currentModel.getScale();
+void Game::renderModel(Mesh *mesh, glm::mat4 viewMatrix, Shader *overrideShader) {
 
     //preparing shader
-    Shader *currentShader;
+    Shader *shader;
     if(overrideShader) {
-        currentShader = overrideShader;
+        shader = overrideShader;
     } else {
-        currentShader = currentMesh->getShader();
+        shader = mesh->getShader();
     }
-    currentShader->use();
+    shader->use();
 
-    ////translating and rotating
-    //glm::mat4 modelMatrix;
-    //modelMatrix = glm::translate(modelMatrix, modelPosition);
-    //glm::mat4 rotation = glm::yawPitchRoll(glm::radians(modelRotation.x), glm::radians(modelRotation.y), glm::radians(modelRotation.z));
-    //modelMatrix *= rotation;
-    //modelMatrix = glm::scale(modelMatrix, modelScale);
+    glm::mat4 modelMatrix;
 
-    //std::vector<Mesh*>& meshes = currentModel.getMeshes();
+    //getting parent node hierarchy (bottom -> top)
+    std::vector<SObject*> nodes;
+    SObject *currentNode = mesh->getParent();
+    while(currentNode) {
+        nodes.push_back(currentNode);
+        currentNode = currentNode->getParent();
+    }
 
-    ////rendering meshes
-    //for(Mesh* currentMesh: meshes) {
+    //iterating over parent nodes (top -> bottom)
+    for(int i = nodes.size() - 1; i >= 0; i--) {
 
-    //transforms
-    glm::mat4 meshModelMatrix;
-    glm::vec3 meshPosition = currentMesh->getPosition();
-    glm::vec3 meshRotation = currentMesh->getRotation();
-    glm::vec3 meshScale = currentMesh->getScale();
-    meshModelMatrix = glm::translate(meshModelMatrix, meshPosition);
+        SObject *currentNode = nodes[i];
+
+        //getting parent transforms
+        glm::vec3 nodePosition = currentNode->getPosition();
+        glm::vec3 nodeRotation = currentNode->getRotation();
+        glm::vec3 nodeScale = currentNode->getScale();
+
+        //getting parent model matrix
+        modelMatrix = glm::translate(modelMatrix, nodePosition);
+        glm::mat4 rotation = glm::yawPitchRoll(glm::radians(nodeRotation.x), glm::radians(nodeRotation.y), glm::radians(nodeRotation.z));
+        //modelMatrix = rotation * modelMatrix;
+        modelMatrix *= rotation;
+        modelMatrix = glm::scale(modelMatrix, nodeScale);
+
+        currentNode = currentNode->getParent();
+
+    }
+
+    //getting mesh transforms
+    glm::vec3 meshPosition = mesh->getPosition();
+    glm::vec3 meshRotation = mesh->getRotation();
+    glm::vec3 meshScale = mesh->getScale();
+
+    //getting mesh model matrix
+    modelMatrix = glm::translate(modelMatrix, meshPosition);
     glm::mat4 rotation = glm::yawPitchRoll(glm::radians(meshRotation.x), glm::radians(meshRotation.y), glm::radians(meshRotation.z));
-    meshModelMatrix *= rotation;
-    meshModelMatrix = glm::scale(meshModelMatrix, meshScale);
-    currentShader->setMat4("model", meshModelMatrix);
+    modelMatrix *= rotation;
+    modelMatrix = glm::scale(modelMatrix, meshScale);
+    shader->setMat4("model", modelMatrix);
 
     //normal matrix
-    glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * meshModelMatrix))); //change to modelMatrix in case of problems with normals
-    currentShader->setMat3("newNormal", normalMatrix);
+    glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * modelMatrix))); //change to modelMatrix in case of problems with normals
+    shader->setMat3("newNormal", normalMatrix);
 
-    currentMesh->setTextures(currentShader);
+    mesh->setTextures(shader);
 
     //finally, rendering
-    currentShader->use();
-    glBindVertexArray(currentMesh->getVAO());
-    glDrawElements(GL_TRIANGLES, currentMesh->getIndexCount(), GL_UNSIGNED_INT, 0);
+    shader->use();
+    //uniformShader.use();
+    glBindVertexArray(mesh->getVAO());
+    glDrawElements(GL_TRIANGLES, mesh->getIndexCount(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
     //}
@@ -457,26 +477,13 @@ void Game::render() {
     glBufferSubData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(invView));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    //sending lights to shader
-    lightingShader.use();
-    for(int i = 0; i < dirLights.size(); i++) {
-        lightingShader.setVec3("dirLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(dirLights[i].direction, 0.0f)));
-    }
-    for(int i = 0; i < pointLights.size(); i++) {
-        lightingShader.setVec3("pointLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(pointLights[i].position, 1.0f)));
-    }
-    for(int i = 0; i < spotLights.size(); i++) {
-        lightingShader.setVec3("spotLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(spotLights[i].direction, 0.0f)));
-        lightingShader.setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(spotLights[i].position, 1.0f)));
-    }
-
-    lightingShader.setVec3("bgColor", glm::vec3(bgColorR, bgColorG, bgColorB));
-    lightingShader.setBool("skyboxEnabled", cubemapEnabled);
+    //setLights(&lightingShader, viewMatrix);
+    setLights(&testShader, viewMatrix);
 
     //render opaque models
     glEnable(GL_CULL_FACE);
     for(Mesh *model: opaqueModels) {
-        renderModel(model, viewMatrix);
+        renderModel(model, viewMatrix, &testShader);
     }
 
     //render skybox
@@ -500,7 +507,7 @@ void Game::render() {
     //render transparent models
     glDisable(GL_CULL_FACE);
     for(std::map<float, Mesh*>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-        renderModel(it->second, viewMatrix);
+        renderModel(it->second, viewMatrix, &testShader);
     }
 
     //render screen quad
@@ -524,6 +531,23 @@ void Game::updateLights() {
     lightingShader.setInt("dirLightCount", dirLights.size());
     lightingShader.setInt("pointLightCount", pointLights.size());
     lightingShader.setInt("spotLightCount", spotLights.size());
+}
+
+void Game::setLights(Shader *shader, glm::mat4 viewMatrix) {
+    shader->use();
+    for(int i = 0; i < dirLights.size(); i++) {
+        shader->setVec3("dirLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(dirLights[i].direction, 0.0f)));
+    }
+    for(int i = 0; i < pointLights.size(); i++) {
+        shader->setVec3("pointLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(pointLights[i].position, 1.0f)));
+    }
+    for(int i = 0; i < spotLights.size(); i++) {
+        shader->setVec3("spotLights[" + std::to_string(i) + "].direction", glm::vec3(viewMatrix * glm::vec4(spotLights[i].direction, 0.0f)));
+        shader->setVec3("spotLights[" + std::to_string(i) + "].position", glm::vec3(viewMatrix * glm::vec4(spotLights[i].position, 1.0f)));
+    }
+
+    shader->setVec3("bgColor", glm::vec3(bgColorR, bgColorG, bgColorB));
+    shader->setBool("skyboxEnabled", cubemapEnabled);
 }
 
 void Game::setCubeMap(std::string folder) {
@@ -557,36 +581,59 @@ void Game::start() {
     }
 }
 
-void Game::loadModel(std::string path) {
+SObject* Game::loadModel(std::string path, MeshSettings settings) {
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cout << "Failed to load model " << path << "\n" << importer.GetErrorString() << "\n";
-        return;
+        return nullptr;
     }
-    directory = path.substr(0, path.find_last_of('/'));
-    processNode(scene->mRootNode, scene);
+    settings.directory = path.substr(0, path.find_last_of('/'));
+    return processNode(scene->mRootNode, scene, nullptr, settings);
 }
 
-void Game::processNode(aiNode* node, const aiScene* scene) {
+SObject* Game::processNode(aiNode* node, const aiScene* scene, SObject *parent, MeshSettings settings) {
+
+    //getting node transforms
     aiMatrix4x4 nodeTransform = node->mTransformation;
-    ai_real nodeX = nodeTransform.a4;
-    ai_real nodeY = nodeTransform.b4;
-    ai_real nodeZ = nodeTransform.c4;
+    aiVector3t<float> nodeTranslation;
+    aiVector3t<float> nodeRotation; //TODO convert from Euler angles to yaw-pitch-roll
+    aiVector3t<float> nodeScale;
+    nodeTransform.Decompose(nodeScale, nodeRotation, nodeTranslation);
+
+    //putting transforms in SObject
+    SObject *newObject = new SObject(
+        glm::vec3(nodeTranslation.x, nodeTranslation.y, nodeTranslation.z),
+        glm::vec3(nodeRotation.x, nodeRotation.y, nodeRotation.z),
+        glm::vec3(nodeScale.x, nodeScale.y, nodeScale.z)
+    );
+    objects.push_back(newObject);
+
+    //adding meshes
     for(int i = 0; i < node->mNumMeshes; i++) {
-        aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-        if(transparent) {
-            transparentModels.push_back(processMesh(mesh, scene, nodeX, nodeY, nodeZ));
+        aiMesh *assimpMesh = scene->mMeshes[node->mMeshes[i]];
+        Mesh *newMesh = processMesh(assimpMesh, scene, newObject, settings);
+        newMesh->setParent(newObject);
+        newObject->addChild(newMesh);
+        if(settings.transparent) {
+            transparentModels.push_back(newMesh);
         } else {
-            opaqueModels.push_back(processMesh(mesh, scene, nodeX, nodeY, nodeZ));
+            opaqueModels.push_back(newMesh);
         }
     }
+
+    //recursively calling for children
     for(int i = 0; i < node->mNumChildren; i++) {
-        processNode(node->mChildren[i], scene);
+        SObject *newNode = processNode(node->mChildren[i], scene, newObject, settings);
+        newNode->setParent(newObject);
+        newObject->addChild(newNode);
     }
+
+    return newObject;
+
 }
 
-Mesh* Game::processMesh(aiMesh* mesh, const aiScene* scene, ai_real nodeX, ai_real nodeY, ai_real nodeZ) {
+Mesh* Game::processMesh(aiMesh* mesh, const aiScene* scene, SObject *parent, MeshSettings settings) {
 
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
@@ -659,12 +706,12 @@ Mesh* Game::processMesh(aiMesh* mesh, const aiScene* scene, ai_real nodeX, ai_re
             reflectivity = 0.0f;
         }
 
-        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE);
+        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, settings);
         hasDiffuse = diffuseMaps.size() > 0;
         if(hasDiffuse) {
             diffuseMap = diffuseMaps[0];
         }
-        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
+        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, settings);
         hasSpecular = specularMaps.size() > 0;
         if(hasSpecular) {
             specularMap = specularMaps[0];
@@ -682,15 +729,12 @@ Mesh* Game::processMesh(aiMesh* mesh, const aiScene* scene, ai_real nodeX, ai_re
                              diffuseMap, specularMap,
                              hasDiffuse, hasSpecular
     };
-    //newMaterial.diffuseColor = diffuseColorGlmVec;
-    //newMaterial
 
-    //return std::make_unique<Mesh>(Mesh(0.0f, 0.0f, 0.0f, 1.0f, newMaterial, vertices, indices));
-    return new Mesh(&lightingShader, glm::vec3(nodeX, nodeY, nodeZ) + ps, rt, sc, newMaterial, vertices, indices, edg);
+    return new Mesh(&lightingShader, newMaterial, vertices, indices, settings.edg);
 
 }
 
-std::vector<Texture> Game::loadMaterialTextures(aiMaterial * mat, aiTextureType type) {
+std::vector<Texture> Game::loadMaterialTextures(aiMaterial * mat, aiTextureType type, MeshSettings settings) {
     std::vector<Texture> textures;
     for(int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString tex_path;
@@ -704,7 +748,7 @@ std::vector<Texture> Game::loadMaterialTextures(aiMaterial * mat, aiTextureType 
             }
         }
         if(!skip) {
-            Texture newTexture(directory + "/" + std::string(tex_path.C_Str()), edg);
+            Texture newTexture(settings.directory + "/" + std::string(tex_path.C_Str()), settings.edg);
             textures.push_back(newTexture);
             loaded_textures.push_back(newTexture);
         }

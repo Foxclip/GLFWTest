@@ -71,17 +71,35 @@ struct SpotLight {
     float outerCutOff;
 };
 
-class Mesh {
+class SObject {
 public:
-    Mesh(Shader *shader, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices, GLenum edge);
+    SObject() {}
+    SObject(glm::vec3 pos, glm::vec3 rot, glm::vec3 scl);
     glm::vec3 getPosition();
     void setPosition(glm::vec3 position);
     glm::vec3 getRotation();
     void setRotation(glm::vec3 ypr);
     void rotate(glm::vec3 ypr);
-    Material getMaterial();
     glm::vec3 getScale();
     void setScale(glm::vec3 scale);
+    SObject* getParent();
+    void setParent(SObject *parent);
+    void addChild(SObject *object);
+
+protected:
+    SObject *parent;
+    std::vector<SObject*> children;
+    glm::vec3 position;
+    glm::vec3 ypr;
+    glm::vec3 scale;
+
+
+};
+
+class Mesh: public SObject {
+public:
+    Mesh(Shader *shader, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices, GLenum edge);
+    Material getMaterial();
     unsigned int getVAO();
     unsigned int getIndexCount();
     void setupMesh();
@@ -90,10 +108,6 @@ public:
     void setShader(Shader *shader);
 
 private:
-
-    glm::vec3 position;
-    glm::vec3 ypr;
-    glm::vec3 scale;
 
     unsigned int VAO, VBO, EBO;
     Material material;
