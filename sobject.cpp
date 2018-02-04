@@ -33,7 +33,15 @@ Mesh::Mesh(Shader *shader, Material material, std::vector<Vertex> vertices, std:
     setupMesh();
 }
 
-glm::vec3 SObject::getPosition() {
+glm::vec3 SObject::getGlobalPosition() {
+    if(parent) {
+        return position + parent->getGlobalPosition();
+    } else {
+        return position;
+    }
+}
+
+glm::vec3 SObject::getLocalPosition() {
     return position;
 }
 
@@ -41,11 +49,19 @@ void SObject::setPosition(glm::vec3 position) {
     this->position = position;
 }
 
+glm::vec3 SObject::getGlobalRotation() {
+    if(parent) {
+        return ypr + parent->getGlobalRotation();
+    } else {
+        return ypr;
+    }
+}
+
 Material Mesh::getMaterial() {
     return material;
 }
 
-glm::vec3 SObject::getScale() {
+glm::vec3 SObject::getLocalScale() {
     return scale;
 }
 
@@ -82,17 +98,17 @@ void Mesh::setupMesh() {
 
 }
 
-void Mesh::setTextures(Shader *shader) {
-    shader->use();
-    shader->setBool("material.hasDiffuse", material.hasDiffuse);
-    shader->setBool("material.hasSpecular", material.hasSpecular);
-    shader->setVec3("material.diffuseColor", material.diffuseColor);
-    shader->setVec3("material.specularColor", material.specularColor);
-    shader->setVec3("material.mirrorColor", material.mirrorColor);
-    shader->setFloat("material.shininess", material.exponent);
-    shader->setFloat("material.reflectivity", material.reflectivity);
-    shader->setInt("material.diffuse", 1);
-    shader->setInt("material.specular", 2);
+void Mesh::setTextures(Shader *pShader) {
+    pShader->use();
+    pShader->setBool("material.hasDiffuse", material.hasDiffuse);
+    pShader->setBool("material.hasSpecular", material.hasSpecular);
+    pShader->setVec3("material.diffuseColor", material.diffuseColor);
+    pShader->setVec3("material.specularColor", material.specularColor);
+    pShader->setVec3("material.mirrorColor", material.mirrorColor);
+    pShader->setFloat("material.shininess", material.exponent);
+    pShader->setFloat("material.reflectivity", material.reflectivity);
+    pShader->setInt("material.diffuse", 1);
+    pShader->setInt("material.specular", 2);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, material.diffuseTexture.getId());
     glActiveTexture(GL_TEXTURE2);
@@ -108,7 +124,7 @@ unsigned int Texture::getId() {
     return id;
 }
 
-glm::vec3 SObject::getRotation() {
+glm::vec3 SObject::getLocalRotation() {
     return ypr;
 }
 
@@ -118,6 +134,14 @@ void SObject::setRotation(glm::vec3 ypr) {
 
 void SObject::rotate(glm::vec3 ypr) {
     this->ypr += ypr;
+}
+
+glm::vec3 SObject::getGlobalScale() {
+    if(parent) {
+        return scale * parent->getGlobalScale();
+    } else {
+        return scale;
+    }
 }
 
 void SObject::setScale(glm::vec3 scale) {

@@ -75,12 +75,15 @@ class SObject {
 public:
     SObject() {}
     SObject(glm::vec3 pos, glm::vec3 rot, glm::vec3 scl);
-    glm::vec3 getPosition();
+    glm::vec3 getGlobalPosition();
+    glm::vec3 getLocalPosition();
     void setPosition(glm::vec3 position);
-    glm::vec3 getRotation();
+    glm::vec3 getGlobalRotation();
+    glm::vec3 getLocalRotation();
     void setRotation(glm::vec3 ypr);
     void rotate(glm::vec3 ypr);
-    glm::vec3 getScale();
+    glm::vec3 getGlobalScale();
+    glm::vec3 getLocalScale();
     void setScale(glm::vec3 scale);
     SObject* getParent();
     void setParent(SObject *parent);
@@ -103,7 +106,7 @@ public:
     unsigned int getVAO();
     unsigned int getIndexCount();
     void setupMesh();
-    void setTextures(Shader *shader);
+    void setTextures(Shader *pShader);
     Shader *getShader();
     void setShader(Shader *shader);
 

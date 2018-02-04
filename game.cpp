@@ -380,43 +380,13 @@ void Game::renderModel(Mesh *mesh, glm::mat4 viewMatrix, Shader *overrideShader)
     }
     shader->use();
 
-    glm::mat4 modelMatrix;
-
-    //getting parent node hierarchy (bottom -> top)
-    std::vector<SObject*> nodes;
-    SObject *currentNode = mesh->getParent();
-    while(currentNode) {
-        nodes.push_back(currentNode);
-        currentNode = currentNode->getParent();
-    }
-
-    //iterating over parent nodes (top -> bottom)
-    for(int i = nodes.size() - 1; i >= 0; i--) {
-
-        SObject *currentNode = nodes[i];
-
-        //getting parent transforms
-        glm::vec3 nodePosition = currentNode->getPosition();
-        glm::vec3 nodeRotation = currentNode->getRotation();
-        glm::vec3 nodeScale = currentNode->getScale();
-
-        //getting parent model matrix
-        modelMatrix = glm::translate(modelMatrix, nodePosition);
-        glm::mat4 rotation = glm::yawPitchRoll(glm::radians(nodeRotation.x), glm::radians(nodeRotation.y), glm::radians(nodeRotation.z));
-        //modelMatrix = rotation * modelMatrix;
-        modelMatrix *= rotation;
-        modelMatrix = glm::scale(modelMatrix, nodeScale);
-
-        currentNode = currentNode->getParent();
-
-    }
-
     //getting mesh transforms
-    glm::vec3 meshPosition = mesh->getPosition();
-    glm::vec3 meshRotation = mesh->getRotation();
-    glm::vec3 meshScale = mesh->getScale();
+    glm::vec3 meshPosition = mesh->getGlobalPosition();
+    glm::vec3 meshRotation = mesh->getGlobalRotation();
+    glm::vec3 meshScale = mesh->getGlobalScale();
 
     //getting mesh model matrix
+    glm::mat4 modelMatrix;
     modelMatrix = glm::translate(modelMatrix, meshPosition);
     glm::mat4 rotation = glm::yawPitchRoll(glm::radians(meshRotation.x), glm::radians(meshRotation.y), glm::radians(meshRotation.z));
     modelMatrix *= rotation;
@@ -477,13 +447,14 @@ void Game::render() {
     glBufferSubData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(invView));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    //setLights(&lightingShader, viewMatrix);
-    setLights(&testShader, viewMatrix);
+    setLights(&lightingShader, viewMatrix);
+    //setLights(&testShader, viewMatrix);
 
     //render opaque models
     glEnable(GL_CULL_FACE);
     for(Mesh *model: opaqueModels) {
-        renderModel(model, viewMatrix, &testShader);
+        renderModel(model, viewMatrix);
+        //renderModel(model, viewMatrix, &lightingShader);
     }
 
     //render skybox
@@ -501,13 +472,13 @@ void Game::render() {
     //sort transparent models
     std::map<float, Mesh*> sorted;
     for(Mesh *model: transparentModels) {
-        float distance = glm::length2(camera.cameraPosition - model->getPosition());
+        float distance = glm::length2(camera.cameraPosition - model->getGlobalPosition());
         sorted[distance] = model;
     }
     //render transparent models
     glDisable(GL_CULL_FACE);
     for(std::map<float, Mesh*>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-        renderModel(it->second, viewMatrix, &testShader);
+        renderModel(it->second, viewMatrix);
     }
 
     //render screen quad
