@@ -367,12 +367,12 @@ void Game::initShaders() {
 }
 
 void Game::processPhysics() {
-    objects[0]->rotate(glm::vec3(1.0f, 0.0f, 0.0f));
-    if(objects[0]->getChildren().size() > 5) {
-        objects[0]->getChildren()[5]->rotate(glm::vec3(-1.0f, 0.0f, 0.0f));
-    }
-    objects[1]->setLocalScale(glm::vec3(1.5 + sin(glfwGetTime())));
-    objects[2]->setLocalPosition(glm::vec3(3*sin(glfwGetTime()), 1.0f, -3.0f));
+    //objects[0]->rotate(glm::vec3(1.0f, 0.0f, 0.0f));
+    //if(objects[0]->getChildren().size() > 5) {
+    //    objects[0]->getChildren()[5]->rotate(glm::vec3(-1.0f, 0.0f, 0.0f));
+    //}
+    //objects[1]->setLocalScale(glm::vec3(1.5 + sin(glfwGetTime())));
+    //objects[2]->setLocalPosition(glm::vec3(3*sin(glfwGetTime()), 1.0f, -3.0f));
 }
 
 void Game::renderModel(Mesh *mesh, glm::mat4 viewMatrix, Shader *overrideShader) {
@@ -442,14 +442,13 @@ void Game::render() {
     glBufferSubData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(invView));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+    //setting lights to shaders
     setLights(&lightingShader, viewMatrix);
     setLights(&testShader, viewMatrix);
 
     //render opaque models
     glEnable(GL_CULL_FACE);
     for(Mesh *model: opaqueModels) {
-        //renderModel(model, viewMatrix, &uniformShader);
-        //renderModel(model, viewMatrix, &testShader);
         renderModel(model, viewMatrix);
     }
 
@@ -473,14 +472,8 @@ void Game::render() {
     }
     //render transparent models
     glDisable(GL_CULL_FACE);
-    //for(std::map<float, Mesh*>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-    //    renderModel(it->second, viewMatrix, &testShader);
-    //    //renderModel(it->second, viewMatrix);
-    //}
-    for(Mesh *model: transparentModels) {
-        //renderModel(model, viewMatrix, &uniformShader);
-        //renderModel(model, viewMatrix, &testShader);
-        renderModel(model, viewMatrix);
+    for(std::map<float, Mesh*>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
+        renderModel(it->second, viewMatrix, &testShader);
     }
 
     //render screen quad

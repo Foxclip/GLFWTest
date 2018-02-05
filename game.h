@@ -48,9 +48,10 @@ private:
     float lastY = 300.0f;
     bool firstMouse = true;
 
-    Camera camera = Camera(0.0f, 4.0f, 4.0f, 0.0f, 1.0f, 0.0f);
+    Camera camera = Camera(glm::vec3(0.0f, 4.0f, 4.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     //Camera camera = Camera(0.0f, 0.0f, 4.0f, 0.0f, 1.0f, 0.0f);
     //Camera camera = Camera(3.0f, 4.0f, 2.0f, 0.0f, 1.0f, 0.0f, 0.0f, -90.0f);
+    //Camera camera = Camera(glm::vec3(-3.0f, 1.0f, 6.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     unsigned int screenFrameBuffer;
     unsigned int screenColorBuffer;

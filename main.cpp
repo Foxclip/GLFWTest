@@ -52,9 +52,9 @@ int main() {
     game->loadFile("models/cube/cube.obj", glm::vec3(0.0f, 1.001f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
     game->loadFile("models/grass/grass.obj", glm::vec3(3.0f, 4.0f, 0.0f), glm::vec3(0.0f), glm::vec3(4.0f), true, GL_CLAMP_TO_EDGE);
 
-    game->loadFile("models/window/window.obj", glm::vec3(-3.0f, 1.0f, 1.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
-    game->loadFile("models/window/window.obj", glm::vec3(-3.0f, 1.0f, 2.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
     game->loadFile("models/window/window.obj", glm::vec3(-3.0f, 1.0f, 3.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
+    game->loadFile("models/window/window.obj", glm::vec3(-3.0f, 1.0f, 2.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
+    game->loadFile("models/window/window.obj", glm::vec3(-3.0f, 1.0f, 1.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
 
 
 
