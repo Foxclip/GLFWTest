@@ -24,51 +24,45 @@ Game::~Game() {
     glfwTerminate();
 }
 
-void Game::addDirectionalLight(float intensity, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient) {
-    DirectionalLight newDirectionalLight = {intensity, color, direction, ambient};
-    dirLights.push_back(newDirectionalLight);
-    lightingShader.setInt("dirLightCount", dirLights.size());
+void Game::addDirectionalLight(Shader *shader, float intensity, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient) {
+    shader->setInt("dirLightCount", dirLights.size());
     int index = dirLights.size() - 1;
-    lightingShader.use();
-    lightingShader.setFloat("dirLights["+std::to_string(index)+"].intensity", dirLights[index].intensity);
-    lightingShader.setVec3("dirLights["+std::to_string(index)+"].color", dirLights[index].color);
-    lightingShader.setVec3("dirLights["+std::to_string(index)+"].ambient", dirLights[index].ambient);
-    updateLights();
+    shader->use();
+    shader->setFloat("dirLights["+std::to_string(index)+"].intensity", dirLights[index].intensity);
+    shader->setVec3("dirLights["+std::to_string(index)+"].color", dirLights[index].color);
+    shader->setVec3("dirLights["+std::to_string(index)+"].ambient", dirLights[index].ambient);
+    updateLights(shader);
 }
 
-void Game::addPointLight(float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient) {
-    PointLight newPointLight = {intensity, color, position, constant, linear, quadratic, ambient};
-    pointLights.push_back(newPointLight);
-    lightingShader.setInt("pointLightCount", pointLights.size());
+void Game::addPointLight(Shader *shader, float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient) {
+    shader->setInt("pointLightCount", pointLights.size());
     int index = pointLights.size() - 1;
-    lightingShader.use();
-    lightingShader.setFloat("pointLights["+std::to_string(index)+"].intensity", pointLights[index].intensity);
-    lightingShader.setVec3("pointLights["+std::to_string(index)+"].color", pointLights[index].color);
-    lightingShader.setVec3("pointLights["+std::to_string(index)+"].position", pointLights[index].position);
-    lightingShader.setFloat("pointLights["+std::to_string(index)+"].constant", pointLights[index].constant);
-    lightingShader.setFloat("pointLights["+std::to_string(index)+"].linear", pointLights[index].linear);
-    lightingShader.setFloat("pointLights["+std::to_string(index)+"].quadratic", pointLights[index].quadratic);
-    lightingShader.setVec3("pointLights["+std::to_string(index)+"].ambient", pointLights[index].ambient);
-    updateLights();
+    shader->use();
+    shader->setFloat("pointLights["+std::to_string(index)+"].intensity", pointLights[index].intensity);
+    shader->setVec3("pointLights["+std::to_string(index)+"].color", pointLights[index].color);
+    shader->setVec3("pointLights["+std::to_string(index)+"].position", pointLights[index].position);
+    shader->setFloat("pointLights["+std::to_string(index)+"].constant", pointLights[index].constant);
+    shader->setFloat("pointLights["+std::to_string(index)+"].linear", pointLights[index].linear);
+    shader->setFloat("pointLights["+std::to_string(index)+"].quadratic", pointLights[index].quadratic);
+    shader->setVec3("pointLights["+std::to_string(index)+"].ambient", pointLights[index].ambient);
+    updateLights(shader);
 }
 
-void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff) {
-    SpotLight newSpotLight = {intensity, color, position, direction, constant, linear, quadratic, ambient, cutOff, outerCutOff};
-    spotLights.push_back(newSpotLight);
-    lightingShader.setInt("spotLightCount", spotLights.size());
+void Game::addSpotLight(Shader *shader, float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff) {
+    shader->setInt("spotLightCount", spotLights.size());
     int index = spotLights.size();
-    lightingShader.use();
-    lightingShader.setFloat("spotLights["+std::to_string(index)+"].intensity", spotLights[index].intensity);
-    lightingShader.setVec3("spotLights["+std::to_string(index)+"].color", spotLights[index].color);
-    lightingShader.setVec3("spotLights["+std::to_string(index)+"].position", spotLights[index].position);
-    lightingShader.setVec3("spotLights["+std::to_string(index)+"].direction", spotLights[index].direction);
-    lightingShader.setFloat("spotLights["+std::to_string(index)+"].constant", spotLights[index].constant);
-    lightingShader.setFloat("spotLights["+std::to_string(index)+"].linear", spotLights[index].linear);
-    lightingShader.setFloat("spotLights["+std::to_string(index)+"].quadratic", spotLights[index].quadratic);
-    lightingShader.setVec3("spotLights["+std::to_string(index)+"].ambient", spotLights[index].ambient);
-    lightingShader.setFloat("spotLights["+std::to_string(index)+"].cutOff", spotLights[index].cutOff);
-    lightingShader.setFloat("spotLights["+std::to_string(index)+"].outerCutOff", spotLights[index].outerCutOff);
-    updateLights();
+    shader->use();
+    shader->setFloat("spotLights["+std::to_string(index)+"].intensity", spotLights[index].intensity);
+    shader->setVec3("spotLights["+std::to_string(index)+"].color", spotLights[index].color);
+    shader->setVec3("spotLights["+std::to_string(index)+"].position", spotLights[index].position);
+    shader->setVec3("spotLights["+std::to_string(index)+"].direction", spotLights[index].direction);
+    shader->setFloat("spotLights["+std::to_string(index)+"].constant", spotLights[index].constant);
+    shader->setFloat("spotLights["+std::to_string(index)+"].linear", spotLights[index].linear);
+    shader->setFloat("spotLights["+std::to_string(index)+"].quadratic", spotLights[index].quadratic);
+    shader->setVec3("spotLights["+std::to_string(index)+"].ambient", spotLights[index].ambient);
+    shader->setFloat("spotLights["+std::to_string(index)+"].cutOff", spotLights[index].cutOff);
+    shader->setFloat("spotLights["+std::to_string(index)+"].outerCutOff", spotLights[index].outerCutOff);
+    updateLights(shader);
 }
 
 void Game::loadFile(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent, GLenum edge) {
@@ -280,8 +274,10 @@ void Game::initUBO() {
 
     unsigned int matrixIndexLighting = glGetUniformBlockIndex(lightingShader.getID(), "Matrices");
     unsigned int matrixIndexSkybox = glGetUniformBlockIndex(skyboxShader.getID(), "Matrices");
+    unsigned int matrixIndexTest = glGetUniformBlockIndex(testShader.getID(), "Matrices");
     glUniformBlockBinding(lightingShader.getID(), matrixIndexLighting, 0);
     glUniformBlockBinding(skyboxShader.getID(), matrixIndexSkybox, 0);
+    glUniformBlockBinding(testShader.getID(), matrixIndexTest, 0);
 
     glGenBuffers(1, &uboMatrices);
     glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
@@ -351,10 +347,14 @@ void Game::processInput(GLFWwindow * window) {
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE) {
         camera.movementSpeed = D_SLOW_SPEED;
     }
+    if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        testBool = true;
+    }
 }
 
 void Game::initShaders() {
-    lightingShader = Shader("plain.vert", "color.frag", "plain.geom");
+    //lightingShader = Shader("plain.vert", "color.frag", "plain.geom");
+    lightingShader = Shader("plain.vert", "color.frag");
     zShader = Shader("plain.vert", "z.frag");
     uniformShader = Shader("plain.vert", "uniform.frag");
     pointShader = Shader("point.vert", "uniform.frag");
@@ -362,7 +362,8 @@ void Game::initShaders() {
     screenShader = Shader("quad.vert", "quad.frag");
     skyboxShader = Shader("skybox.vert", "skybox.frag");
     normalShader = Shader("normal.vert", "uniform.frag", "normal.geom");
-    testShader = Shader("test.vert", "test.frag", "plain.geom");
+    //testShader = Shader("test.vert", "test.frag", "test.geom");
+    testShader = Shader("test.vert", "test.frag");
 }
 
 void Game::processPhysics() {
@@ -401,7 +402,6 @@ void Game::renderModel(Mesh *mesh, glm::mat4 viewMatrix, Shader *overrideShader)
 
     //finally, rendering
     shader->use();
-    //uniformShader.use();
     glBindVertexArray(mesh->getVAO());
     glDrawElements(GL_TRIANGLES, mesh->getIndexCount(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
@@ -448,13 +448,14 @@ void Game::render() {
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     setLights(&lightingShader, viewMatrix);
-    //setLights(&testShader, viewMatrix);
+    setLights(&testShader, viewMatrix);
 
     //render opaque models
     glEnable(GL_CULL_FACE);
     for(Mesh *model: opaqueModels) {
+        //renderModel(model, viewMatrix, &uniformShader);
+        //renderModel(model, viewMatrix, &testShader);
         renderModel(model, viewMatrix);
-        //renderModel(model, viewMatrix, &lightingShader);
     }
 
     //render skybox
@@ -477,8 +478,14 @@ void Game::render() {
     }
     //render transparent models
     glDisable(GL_CULL_FACE);
-    for(std::map<float, Mesh*>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
-        renderModel(it->second, viewMatrix);
+    //for(std::map<float, Mesh*>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it) {
+    //    renderModel(it->second, viewMatrix, &testShader);
+    //    //renderModel(it->second, viewMatrix);
+    //}
+    for(Mesh *model: transparentModels) {
+        //renderModel(model, viewMatrix, &uniformShader);
+        //renderModel(model, viewMatrix, &testShader);
+        renderModel(model, viewMatrix);
     }
 
     //render screen quad
@@ -497,11 +504,11 @@ void Game::render() {
     glfwPollEvents();
 }
 
-void Game::updateLights() {
-    lightingShader.use();
-    lightingShader.setInt("dirLightCount", dirLights.size());
-    lightingShader.setInt("pointLightCount", pointLights.size());
-    lightingShader.setInt("spotLightCount", spotLights.size());
+void Game::updateLights(Shader *shader) {
+    shader->use();
+    shader->setInt("dirLightCount", dirLights.size());
+    shader->setInt("pointLightCount", pointLights.size());
+    shader->setInt("spotLightCount", spotLights.size());
 }
 
 void Game::setLights(Shader *shader, glm::mat4 viewMatrix) {
@@ -542,6 +549,27 @@ void Game::setBgColor(float r, float g, float b) {
     bgColorR = r;
     bgColorG = g;
     bgColorB = b;
+}
+
+void Game::addDirectionalLight(float intensity, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient) {
+    DirectionalLight newDirectionalLight = {intensity, color, direction, ambient};
+    dirLights.push_back(newDirectionalLight);
+    addDirectionalLight(&lightingShader, intensity, color, direction, ambient);
+    addDirectionalLight(&testShader, intensity, color, direction, ambient);
+}
+
+void Game::addPointLight(float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient) {
+    PointLight newPointLight = {intensity, color, position, constant, linear, quadratic, ambient};
+    pointLights.push_back(newPointLight);
+    addPointLight(&lightingShader, intensity, color, position, constant, linear, quadratic, ambient);
+    addPointLight(&testShader, intensity, color, position, constant, linear, quadratic, ambient);
+}
+
+void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff) {
+    SpotLight newSpotLight = {intensity, color, position, direction, constant, linear, quadratic, ambient, cutOff, outerCutOff};
+    spotLights.push_back(newSpotLight);
+    addSpotLight(&lightingShader, intensity, color, position, direction, constant, linear, quadratic, ambient, cutOff, outerCutOff);
+    addSpotLight(&testShader, intensity, color, position, direction, constant, linear, quadratic, ambient, cutOff, outerCutOff);
 }
 
 void Game::start() {
@@ -630,8 +658,7 @@ Mesh* Game::processMesh(aiMesh* mesh, const aiScene* scene, SObject *parent, Mes
             tc.x = mesh->mTextureCoords[0][i].x;
             tc.y = mesh->mTextureCoords[0][i].y;
             vertex.TexCoords = tc;
-        } 
-        else {
+        } else {
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);
         }
 
@@ -701,7 +728,7 @@ Mesh* Game::processMesh(aiMesh* mesh, const aiScene* scene, SObject *parent, Mes
                              hasDiffuse, hasSpecular
     };
 
-    return new Mesh(&lightingShader, newMaterial, vertices, indices, settings.edg);
+    return new Mesh(settings.shader, newMaterial, vertices, indices, settings.edg);
 
 }
 

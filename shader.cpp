@@ -56,9 +56,18 @@ Shader::Shader(std::string vertexPath, std::string fragmentPath, std::string geo
     glLinkProgram(shaderProgram);
     int success;
     char infolog[INFOLOG_MAX_SIZE];
+    int infologSize;
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if(!success) {
-        glGetProgramInfoLog(shaderProgram, INFOLOG_MAX_SIZE, NULL, infolog);
+    glGetProgramInfoLog(shaderProgram, INFOLOG_MAX_SIZE, &infologSize, infolog);
+    if(success) {
+        if(infologSize > 0) {
+            if(geometryPath != "") {
+                std::cout << vertexPath << " | " << geometryPath << " | " << fragmentPath << "\n\n" << infolog << "\n";
+            } else {
+                std::cout << vertexPath << " | " << fragmentPath << "\n\n" << infolog << "\n";
+            }
+        }
+    } else {
         if(geometryPath != "") {
             std::cout << "Shader linking failed: " << vertexPath << " | " << geometryPath << " | " << fragmentPath << "\n\n" << infolog << "\n";
         } else {

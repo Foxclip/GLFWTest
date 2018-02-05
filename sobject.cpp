@@ -160,6 +160,10 @@ void SObject::addChild(SObject *object) {
     children.push_back(object);
 }
 
+std::vector<SObject*>& SObject::getChildren() {
+    return children;
+}
+
 Shader *Mesh::getShader() {
     return shader;
 }

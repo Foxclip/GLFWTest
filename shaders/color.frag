@@ -212,15 +212,20 @@ vec3 calcSpotLightSpecular(SpotLight light, vec3 normal) {
 
 void main() {
 
-	float opacity = texture(material.diffuse, fs_in.TexCoords).a;
-	if(opacity == 0.0) {
-		discard;
+	float opacity;
+	if(material.hasDiffuse) {
+		opacity = texture(material.diffuse, fs_in.TexCoords).a;
+		if(opacity == 0.0) {
+			discard;
+		}
+	} else {
+		opacity = 1.0;
 	}
-
+	
 	vec3 norm = normalize(fs_in.Normal);
 
-	vec3 resultDiffuse;
-	vec3 resultSpecular;
+	vec3 resultDiffuse = vec3(0.0, 0.0, 0.0);
+	vec3 resultSpecular = vec3(0.0, 0.0, 0.0);
 
 	for(int i = 0; i < dirLightCount; i++) {
 		resultDiffuse += calcDirLightDiffuse(dirLights[i], norm);
@@ -246,6 +251,8 @@ void main() {
 	vec3 result = mix(resultDiffuse, reflectColor, material.reflectivity) + resultSpecular;
 
 	FragColor = vec4(result, opacity);
+
+	//FragColor = vec4(fs_in.TexCoords, 0.0, opacity);
 
 /*
 	float ratio = 1.00 / 1.52;

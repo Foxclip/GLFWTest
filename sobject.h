@@ -88,6 +88,7 @@ public:
     SObject* getParent();
     void setParent(SObject *parent);
     void addChild(SObject *object);
+    std::vector<SObject*>& getChildren();
 
 protected:
     SObject *parent;

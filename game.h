@@ -16,14 +16,14 @@ public:
     Game();
     ~Game();
     void start();
-    void addDirectionalLight(float intensity, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient);
-    void addPointLight(float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient);
-    void addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff);
+    
     void loadFile(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent = false, GLenum edge = GL_REPEAT);
     void setCubeMap(std::string folder);
     void enableCubeMap();
     void setBgColor(float r, float g, float b);
-
+    void addDirectionalLight(float intensity, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient);
+    void addPointLight(float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient);
+    void addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff);
     void frmbuf_size_cb(GLFWwindow* window, int width, int height);
     void mouseCb(GLFWwindow* window, double xpos, double ypos);
     void scrCb(GLFWwindow* window, double xoffset, double yoffset);
@@ -77,6 +77,8 @@ private:
     float bgColorG = 0.0f;
     float bgColorB = 0.0f;
 
+    bool testBool;
+
     void initGLFW();
     void initFrameBuffer();
     void initUBO();
@@ -86,12 +88,15 @@ private:
     void processPhysics();
     void renderModel(Mesh *mesh, glm::mat4 view, Shader *overrideShader = nullptr);
     void render();
-    void updateLights();
+    void updateLights(Shader *shader);
     void setLights(Shader *shader, glm::mat4 viewMatrix);
     SObject* loadModel(std::string path, MeshSettings settings);
     SObject* processNode(aiNode* node, const aiScene* scene, SObject *parent, MeshSettings settings);
     Mesh* processMesh(aiMesh* mesh, const aiScene* scene, SObject *parent, MeshSettings settings);
     std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, MeshSettings settings);
+    void addDirectionalLight(Shader *shader, float intensity, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient);
+    void addPointLight(Shader *shader, float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient);
+    void addSpotLight(Shader *shader, float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff);
 
 };
 
