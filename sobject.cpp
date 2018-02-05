@@ -1,4 +1,5 @@
 #include "sobject.h"
+#include "glm/gtx/matrix_decompose.hpp"
 
 unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation) {
     int width, height, nrChannels;
@@ -22,47 +23,61 @@ unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation
 }
 
 Mesh::Mesh(Shader *shader, Material material, std::vector<Vertex> vertices, std::vector<unsigned int> indices, GLenum edge) {
-    this->position = glm::vec3(0.0f);
-    this->ypr = glm::vec3(0.0f);
-    this->scale = glm::vec3(1.0f);
+    this->transform = glm::mat4();
     this->shader = shader;
     this->material = material;
     this->vertices = vertices;
     this->indices = indices;
     this->edge = edge;
     setupMesh();
+
+}
+
+glm::mat4 SObject::getGlobalTransform() {
+    if(parent) {
+        return parent->getGlobalTransform() * transform;
+    } else {
+        return transform;
+    }
 }
 
 glm::vec3 SObject::getGlobalPosition() {
-    if(parent) {
-        return position + parent->getGlobalPosition();
-    } else {
-        return position;
-    }
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 translation;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(getGlobalTransform(), scale, rotation, translation, skew, perspective);
+    return translation;
 }
 
-glm::vec3 SObject::getLocalPosition() {
-    return position;
+void SObject::setLocalPosition(glm::vec3 position) {
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 translation;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(transform, scale, rotation, translation, skew, perspective);
+    glm::vec3 delta = position - translation;
+    transform = glm::translate(transform, delta);
 }
 
-void SObject::setPosition(glm::vec3 position) {
-    this->position = position;
-}
-
-glm::vec3 SObject::getGlobalRotation() {
-    if(parent) {
-        return ypr + parent->getGlobalRotation();
-    } else {
-        return ypr;
-    }
+void SObject::setLocalRotation(glm::vec3 ypr) {
+    glm::vec3 newYpr = glm::vec3(glm::radians(ypr.x), glm::radians(ypr.y), glm::radians(ypr.z));
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 translation;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(transform, scale, rotation, translation, skew, perspective);
+    glm::vec3 currentYpr(glm::yaw(rotation), glm::pitch(rotation), glm::roll(rotation));
+    glm::vec3 delta = newYpr - currentYpr;
+    glm::mat4 rot = glm::yawPitchRoll(delta.x, delta.y, delta.z);
+    transform *= rot;
 }
 
 Material Mesh::getMaterial() {
     return material;
-}
-
-glm::vec3 SObject::getLocalScale() {
-    return scale;
 }
 
 unsigned int Mesh::getVAO() {
@@ -124,28 +139,31 @@ unsigned int Texture::getId() {
     return id;
 }
 
-glm::vec3 SObject::getLocalRotation() {
-    return ypr;
-}
-
-void SObject::setRotation(glm::vec3 ypr) {
-    this->ypr = ypr;
-}
-
 void SObject::rotate(glm::vec3 ypr) {
-    this->ypr += ypr;
+    glm::vec3 deltaYpr = glm::vec3(glm::radians(ypr.x), glm::radians(ypr.y), glm::radians(ypr.z));
+    glm::mat4 rotation = glm::yawPitchRoll(deltaYpr.x, deltaYpr.y, deltaYpr.z);
+    transform *= rotation;
 }
 
 glm::vec3 SObject::getGlobalScale() {
-    if(parent) {
-        return scale * parent->getGlobalScale();
-    } else {
-        return scale;
-    }
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 translation;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(getGlobalTransform(), scale, rotation, translation, skew, perspective);
+    return scale;
 }
 
-void SObject::setScale(glm::vec3 scale) {
-    this->scale = scale;
+void SObject::setScale(glm::vec3 newScale) {
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 translation;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(transform, scale, rotation, translation, skew, perspective);
+    glm::vec3 delta = newScale / scale;
+    transform = glm::scale(transform, delta);
 }
 
 SObject * SObject::getParent() {
@@ -173,7 +191,11 @@ void Mesh::setShader(Shader *shader) {
 }
 
 SObject::SObject(glm::vec3 pos, glm::vec3 rot, glm::vec3 scl) {
-    this->position = pos;
-    this->ypr = rot;
-    this->scale = scl;
+    glm::mat4 matrix;
+    matrix = glm::translate(matrix, pos);
+    glm::vec3 deltaYpr = glm::vec3(glm::radians(rot.x), glm::radians(rot.y), glm::radians(rot.z));
+    glm::mat4 rotation = glm::yawPitchRoll(deltaYpr.x, deltaYpr.y, deltaYpr.z);
+    matrix *= rotation;
+    matrix = glm::scale(matrix, scl);
+    transform = matrix;
 }

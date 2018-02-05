@@ -41,9 +41,9 @@ int main() {
 
 
     game->loadFile("models/nanosuit/nanosuit.obj", glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+    game->loadFile("models/digits/digits.dae", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 
     game->loadFile("models/windowcube/windowcube.obj", glm::vec3(-3.0f, 1.001f, -3.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
-    game->loadFile("models/digits/digits.dae", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 
     game->loadFile("models/sphere2/sphere2.dae", glm::vec3(3.0f, 1.2f, 2.0f), glm::vec3(0.0f), glm::vec3(1.0f));
     game->loadFile("models/mirrorcube/mirrorcube.dae", glm::vec3(0.0f, 1.001f, 3.0f), glm::vec3(0.0f), glm::vec3(1.0f));

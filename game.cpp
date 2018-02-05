@@ -72,8 +72,8 @@ void Game::loadFile(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, boo
     settings.transparent = transparent;
     settings.edg = edge;
     SObject *model = loadModel(path, settings);
-    model->setPosition(pos);
-    model->setRotation(rot);
+    model->setLocalPosition(pos);
+    model->setLocalRotation(rot);
     model->setScale(scl);
 }
 
@@ -368,6 +368,9 @@ void Game::initShaders() {
 
 void Game::processPhysics() {
     objects[0]->rotate(glm::vec3(1.0f, 0.0f, 0.0f));
+    //if(objects[0]->getChildren().size() > 5) {
+    //    objects[0]->getChildren()[5]->rotate(glm::vec3(3.0f, 0.0f, 0.0f));
+    //}
 }
 
 void Game::renderModel(Mesh *mesh, glm::mat4 viewMatrix, Shader *overrideShader) {
@@ -381,17 +384,7 @@ void Game::renderModel(Mesh *mesh, glm::mat4 viewMatrix, Shader *overrideShader)
     }
     shader->use();
 
-    //getting mesh transforms
-    glm::vec3 meshPosition = mesh->getGlobalPosition();
-    glm::vec3 meshRotation = mesh->getGlobalRotation();
-    glm::vec3 meshScale = mesh->getGlobalScale();
-
-    //getting mesh model matrix
-    glm::mat4 modelMatrix;
-    modelMatrix = glm::translate(modelMatrix, meshPosition);
-    glm::mat4 rotation = glm::yawPitchRoll(glm::radians(meshRotation.x), glm::radians(meshRotation.y), glm::radians(meshRotation.z));
-    modelMatrix *= rotation;
-    modelMatrix = glm::scale(modelMatrix, meshScale);
+    glm::mat4 modelMatrix = mesh->getGlobalTransform();
     shader->setMat4("model", modelMatrix);
 
     //normal matrix

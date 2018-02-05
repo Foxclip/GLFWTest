@@ -75,15 +75,12 @@ class SObject {
 public:
     SObject() {}
     SObject(glm::vec3 pos, glm::vec3 rot, glm::vec3 scl);
+    glm::mat4 getGlobalTransform();
     glm::vec3 getGlobalPosition();
-    glm::vec3 getLocalPosition();
-    void setPosition(glm::vec3 position);
-    glm::vec3 getGlobalRotation();
-    glm::vec3 getLocalRotation();
-    void setRotation(glm::vec3 ypr);
+    void setLocalPosition(glm::vec3 position);
+    void setLocalRotation(glm::vec3 ypr);
     void rotate(glm::vec3 ypr);
     glm::vec3 getGlobalScale();
-    glm::vec3 getLocalScale();
     void setScale(glm::vec3 scale);
     SObject* getParent();
     void setParent(SObject *parent);
@@ -93,9 +90,7 @@ public:
 protected:
     SObject *parent;
     std::vector<SObject*> children;
-    glm::vec3 position;
-    glm::vec3 ypr;
-    glm::vec3 scale;
+    glm::mat4 transform;
 
 
 };
