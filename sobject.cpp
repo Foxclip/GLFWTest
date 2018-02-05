@@ -155,7 +155,7 @@ glm::vec3 SObject::getGlobalScale() {
     return scale;
 }
 
-void SObject::setScale(glm::vec3 newScale) {
+void SObject::setLocalScale(glm::vec3 newScale) {
     glm::vec3 scale;
     glm::quat rotation;
     glm::vec3 translation;

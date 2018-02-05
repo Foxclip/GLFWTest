@@ -40,8 +40,8 @@ int main() {
 
 
 
-    game->loadFile("models/nanosuit/nanosuit.obj", glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(0.0f), glm::vec3(1.0f));
     game->loadFile("models/digits/digits.dae", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+    game->loadFile("models/nanosuit/nanosuit.obj", glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 
     game->loadFile("models/windowcube/windowcube.obj", glm::vec3(-3.0f, 1.001f, -3.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
 

@@ -74,7 +74,7 @@ void Game::loadFile(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, boo
     SObject *model = loadModel(path, settings);
     model->setLocalPosition(pos);
     model->setLocalRotation(rot);
-    model->setScale(scl);
+    model->setLocalScale(scl);
 }
 
 void Game::frmbuf_size_cb(GLFWwindow * window, int width, int height) {
@@ -368,9 +368,11 @@ void Game::initShaders() {
 
 void Game::processPhysics() {
     objects[0]->rotate(glm::vec3(1.0f, 0.0f, 0.0f));
-    //if(objects[0]->getChildren().size() > 5) {
-    //    objects[0]->getChildren()[5]->rotate(glm::vec3(3.0f, 0.0f, 0.0f));
-    //}
+    if(objects[0]->getChildren().size() > 5) {
+        objects[0]->getChildren()[5]->rotate(glm::vec3(-1.0f, 0.0f, 0.0f));
+    }
+    objects[1]->setLocalScale(glm::vec3(1.5 + sin(glfwGetTime())));
+    objects[2]->setLocalPosition(glm::vec3(3*sin(glfwGetTime()), 1.0f, -3.0f));
 }
 
 void Game::renderModel(Mesh *mesh, glm::mat4 viewMatrix, Shader *overrideShader) {
@@ -581,7 +583,9 @@ SObject* Game::loadModel(std::string path, MeshSettings settings) {
         return nullptr;
     }
     settings.directory = path.substr(0, path.find_last_of('/'));
-    return processNode(scene->mRootNode, scene, nullptr, settings);
+    SObject *object = processNode(scene->mRootNode, scene, nullptr, settings);
+    objects.push_back(object);
+    return object;
 }
 
 SObject* Game::processNode(aiNode* node, const aiScene* scene, SObject *parent, MeshSettings settings) {
@@ -599,7 +603,7 @@ SObject* Game::processNode(aiNode* node, const aiScene* scene, SObject *parent, 
         glm::vec3(nodeRotation.x, nodeRotation.y, nodeRotation.z),
         glm::vec3(nodeScale.x, nodeScale.y, nodeScale.z)
     );
-    objects.push_back(newObject);
+    nodes.push_back(newObject);
 
     //adding meshes
     for(int i = 0; i < node->mNumMeshes; i++) {

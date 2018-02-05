@@ -81,7 +81,7 @@ public:
     void setLocalRotation(glm::vec3 ypr);
     void rotate(glm::vec3 ypr);
     glm::vec3 getGlobalScale();
-    void setScale(glm::vec3 scale);
+    void setLocalScale(glm::vec3 scale);
     SObject* getParent();
     void setParent(SObject *parent);
     void addChild(SObject *object);

@@ -66,6 +66,7 @@ private:
     unsigned int uboMatrices;
 
     std::vector<SObject*> objects;
+    std::vector<SObject*> nodes;
     std::vector<Mesh*> opaqueModels;
     std::vector<Mesh*> transparentModels;
     std::vector<DirectionalLight> dirLights;
