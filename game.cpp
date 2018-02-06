@@ -65,16 +65,27 @@ void Game::addSpotLight(Shader *shader, float intensity, glm::vec3 color, glm::v
     updateLights(shader);
 }
 
-void Game::loadFile(char *path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent, GLenum edge) {
+SObject* Game::loadFile(std::string path, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent, GLenum edge) {
     MeshSettings settings;
     settings.directory = "";
     settings.shader = &lightingShader;
     settings.transparent = transparent;
     settings.edg = edge;
-    SObject *model = loadModel(path, settings);
-    model->setLocalPosition(pos);
-    model->setLocalRotation(rot);
-    model->setLocalScale(scl);
+    SObject *rootNode = loadAllMeshes(path, settings);
+    rootNode->setLocalPosition(pos);
+    rootNode->setLocalRotation(rot);
+    rootNode->setLocalScale(scl);
+    return rootNode;
+}
+
+Mesh* Game::loadMesh(std::string path, bool transparent, GLenum edge) {
+    MeshSettings settings;
+    settings.directory = "";
+    settings.shader = &lightingShader;
+    settings.transparent = transparent;
+    settings.edg = edge;
+    Mesh *mesh = loadOneMesh(path, settings);
+    return mesh;
 }
 
 void Game::frmbuf_size_cb(GLFWwindow * window, int width, int height) {
@@ -367,7 +378,7 @@ void Game::initShaders() {
 }
 
 void Game::processPhysics() {
-    //objects[0]->rotate(glm::vec3(1.0f, 0.0f, 0.0f));
+    objects[0]->rotate(glm::vec3(0.0f, 0.0f, 1.0f));
     //if(objects[0]->getChildren().size() > 5) {
     //    objects[0]->getChildren()[5]->rotate(glm::vec3(-1.0f, 0.0f, 0.0f));
     //}
@@ -390,7 +401,7 @@ void Game::renderModel(Mesh *mesh, glm::mat4 viewMatrix, Shader *overrideShader)
     shader->setMat4("model", modelMatrix);
 
     //normal matrix
-    glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * modelMatrix))); //change to modelMatrix in case of problems with normals
+    glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * modelMatrix)));
     shader->setMat3("newNormal", normalMatrix);
 
     mesh->setTextures(shader);
@@ -401,7 +412,32 @@ void Game::renderModel(Mesh *mesh, glm::mat4 viewMatrix, Shader *overrideShader)
     glDrawElements(GL_TRIANGLES, mesh->getIndexCount(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
-    //}
+}
+
+void Game::renderParticleField(ParticleField *field, glm::mat4 viewMatrix, Shader *overrideShader) {
+
+    //preparing shader
+    Shader *shader;
+    if(overrideShader) {
+        shader = overrideShader;
+    } else {
+        shader = field->getMesh()->getShader();
+    }
+    shader->use();
+
+    field->getMesh()->setTextures(shader);
+
+    //drawing instances
+    glBindVertexArray(field->getMesh()->getVAO());
+    for(glm::mat4 modelMatrix: field->getModelMatrices()) {
+        shader->setMat4("model", modelMatrix);
+        glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * modelMatrix)));
+        shader->setMat3("newNormal", normalMatrix);
+        shader->use();
+        glDrawElements(GL_TRIANGLES, field->getMesh()->getIndexCount(), GL_UNSIGNED_INT, 0);
+    }
+    glBindVertexArray(0);
+
 }
 
 void Game::render() {
@@ -450,6 +486,11 @@ void Game::render() {
     glEnable(GL_CULL_FACE);
     for(Mesh *model: opaqueModels) {
         renderModel(model, viewMatrix);
+    }
+
+    //render opaque particle fields
+    for(ParticleField *field: opaqueParticleFields) {
+        renderParticleField(field, viewMatrix);
     }
 
     //render skybox
@@ -560,6 +601,17 @@ void Game::addSpotLight(float intensity, glm::vec3 color, glm::vec3 position, gl
     addSpotLight(&testShader, intensity, color, position, direction, constant, linear, quadratic, ambient, cutOff, outerCutOff);
 }
 
+void Game::addParticleField(std::string path, int count, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool transparent) {
+    Mesh *mesh = loadMesh(path, transparent);
+    if(transparent) {
+        std::cout << "Transparent particle field\n";
+        exit(-1);
+    } else {
+        ParticleField *field = new ParticleField(mesh, count);
+        opaqueParticleFields.push_back(field);
+    }
+}
+
 void Game::start() {
     while(!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -568,7 +620,7 @@ void Game::start() {
     }
 }
 
-SObject* Game::loadModel(std::string path, MeshSettings settings) {
+SObject* Game::loadAllMeshes(std::string path, MeshSettings settings) {
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
@@ -579,6 +631,30 @@ SObject* Game::loadModel(std::string path, MeshSettings settings) {
     SObject *object = processNode(scene->mRootNode, scene, nullptr, settings);
     objects.push_back(object);
     return object;
+}
+
+Mesh* Game::loadOneMesh(std::string path, MeshSettings settings) {
+    Assimp::Importer importer;
+    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        std::cout << "Failed to load mesh " << path << "\n" << importer.GetErrorString() << "\n";
+        return nullptr;
+    }
+    settings.directory = path.substr(0, path.find_last_of('/'));
+    Mesh *mesh = findFirstMesh(scene->mRootNode, scene, settings);
+    return mesh;
+}
+
+Mesh* Game::findFirstMesh(aiNode* node, const aiScene* scene, MeshSettings settings) {
+    if(node->mNumMeshes > 0) {
+        aiMesh *assimpMesh = scene->mMeshes[node->mMeshes[0]];
+        Mesh *newMesh = processMesh(assimpMesh, scene, settings);
+        return newMesh;
+    } else if(node->mNumChildren > 0) {
+        return findFirstMesh(node->mChildren[0], scene, settings);
+    } else {
+        std::cout << "Error while loading mesh: mesh not found\n";
+    }
 }
 
 SObject* Game::processNode(aiNode* node, const aiScene* scene, SObject *parent, MeshSettings settings) {
@@ -601,7 +677,7 @@ SObject* Game::processNode(aiNode* node, const aiScene* scene, SObject *parent, 
     //adding meshes
     for(int i = 0; i < node->mNumMeshes; i++) {
         aiMesh *assimpMesh = scene->mMeshes[node->mMeshes[i]];
-        Mesh *newMesh = processMesh(assimpMesh, scene, newObject, settings);
+        Mesh *newMesh = processMesh(assimpMesh, scene, settings);
         newMesh->setParent(newObject);
         newObject->addChild(newMesh);
         if(settings.transparent) {
@@ -622,7 +698,7 @@ SObject* Game::processNode(aiNode* node, const aiScene* scene, SObject *parent, 
 
 }
 
-Mesh* Game::processMesh(aiMesh* mesh, const aiScene* scene, SObject *parent, MeshSettings settings) {
+Mesh* Game::processMesh(aiMesh* mesh, const aiScene* scene, MeshSettings settings) {
 
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
@@ -682,7 +758,7 @@ Mesh* Game::processMesh(aiMesh* mesh, const aiScene* scene, SObject *parent, Mes
             diffuseColor = {0.5f, 0.5f, 0.5f};
         }
         if(material->Get(AI_MATKEY_COLOR_SPECULAR, specularColor) != aiReturn_SUCCESS) {
-            specularColor = {0.5f, 0.5f, 0.5f};
+            specularColor = {0.0f, 0.0f, 0.0f};
         }
         if(material->Get(AI_MATKEY_COLOR_REFLECTIVE, mirrorColor) != aiReturn_SUCCESS) {
             mirrorColor = {0.0f, 0.0f, 0.0f};

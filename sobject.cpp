@@ -31,6 +31,8 @@ Mesh::Mesh(Shader *shader, Material material, std::vector<Vertex> vertices, std:
     this->edge = edge;
     setupMesh();
 
+    this->parent = nullptr;
+
 }
 
 glm::mat4 SObject::getGlobalTransform() {
@@ -190,6 +192,10 @@ void Mesh::setShader(Shader *shader) {
     this->shader = shader;
 }
 
+SObject::SObject() {
+    parent = nullptr;
+}
+
 SObject::SObject(glm::vec3 pos, glm::vec3 rot, glm::vec3 scl) {
     glm::mat4 matrix;
     matrix = glm::translate(matrix, pos);
@@ -198,4 +204,53 @@ SObject::SObject(glm::vec3 pos, glm::vec3 rot, glm::vec3 scl) {
     matrix *= rotation;
     matrix = glm::scale(matrix, scl);
     transform = matrix;
+}
+
+ParticleField::ParticleField(Mesh *mesh, int count) {
+    modelMatrices.resize(count);
+    this->mesh = mesh;
+    this->count = count;
+    updateModelMatrices();
+}
+
+Mesh* ParticleField::getMesh() {
+    return mesh;
+}
+
+std::vector<glm::mat4>& ParticleField::getModelMatrices() {
+    return modelMatrices;
+}
+
+void ParticleField::updateModelMatrices() {
+
+    srand(glfwGetTime()); // initialize random seed	
+    float radius = 10.0;
+    float offset = 2.5f;
+
+    for(unsigned int i = 0; i < count; i++) {
+
+        glm::mat4 model;
+
+        // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+        float angle = (float)i / (float)count * 360.0f;
+        float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float x = sin(angle) * radius + displacement;
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float y = displacement * 0.4f; // keep height of field smaller compared to width of x and z
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float z = cos(angle) * radius + displacement;
+        model = glm::translate(model, glm::vec3(x, y, z));
+
+        // 2. scale: Scale between 0.05 and 0.25f
+        float scale = 1.0f / 100.0f;
+        model = glm::scale(model, glm::vec3(scale));
+
+        // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+        float rotAngle = (rand() % 360);
+        model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+
+        // 4. now add to list of matrices
+        modelMatrices[i] = model;
+
+    }
 }

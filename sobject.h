@@ -73,7 +73,7 @@ struct SpotLight {
 
 class SObject {
 public:
-    SObject() {}
+    SObject();
     SObject(glm::vec3 pos, glm::vec3 rot, glm::vec3 scl);
     glm::mat4 getGlobalTransform();
     glm::vec3 getGlobalPosition();
@@ -117,5 +117,19 @@ private:
 
     //TODO get rid of this
     GLenum edge;
+
+};
+
+class ParticleField: public SObject {
+public:
+    ParticleField(Mesh *mesh, int count);
+    Mesh* getMesh();
+    std::vector<glm::mat4>& getModelMatrices();
+    void updateModelMatrices();
+
+private:
+    std::vector<glm::mat4> modelMatrices;
+    Mesh *mesh;
+    int count;
 
 };
