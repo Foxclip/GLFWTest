@@ -379,6 +379,7 @@ void Game::initShaders() {
 
 void Game::processPhysics() {
     objects[0]->rotate(glm::vec3(0.0f, 0.0f, 1.0f));
+    opaqueParticleFields[0]->rotate(glm::vec3(-0.1f, 0.0f, 0.0f));
     //if(objects[0]->getChildren().size() > 5) {
     //    objects[0]->getChildren()[5]->rotate(glm::vec3(-1.0f, 0.0f, 0.0f));
     //}
@@ -430,8 +431,9 @@ void Game::renderParticleField(ParticleField *field, glm::mat4 viewMatrix, Shade
     //drawing instances
     glBindVertexArray(field->getMesh()->getVAO());
     for(glm::mat4 modelMatrix: field->getModelMatrices()) {
-        shader->setMat4("model", modelMatrix);
-        glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * modelMatrix)));
+        glm::mat4 newModelMatrix = field->getGlobalTransform() * modelMatrix;
+        shader->setMat4("model", newModelMatrix);
+        glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * newModelMatrix)));
         shader->setMat3("newNormal", normalMatrix);
         shader->use();
         glDrawElements(GL_TRIANGLES, field->getMesh()->getIndexCount(), GL_UNSIGNED_INT, 0);
