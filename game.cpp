@@ -340,7 +340,7 @@ unsigned int Game::loadCubeMap(std::vector<std::string> faces) {
     for(int i = 0; i < faces.size(); i++) {
         unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
         if(data) {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             stbi_image_free(data);
         } else {
             std::cout << "Failed to load skybox texture: " << faces[i] << "\n";
@@ -409,8 +409,14 @@ void Game::initShaders() {
 }
 
 void Game::processPhysics() {
+
+    //nanosuit scene
+    objects[1]->rotate(glm::vec3(1.0f, 0.0f, 0.0f));
+
+    //space scene
     //objects[0]->rotate(glm::vec3(0.0f, 0.0f, 1.0f));
     //opaqueParticleFields[0]->rotate(glm::vec3(-0.1f, 0.0f, 0.0f));
+
     //if(objects[0]->getChildren().size() > 5) {
     //    objects[0]->getChildren()[5]->rotate(glm::vec3(-1.0f, 0.0f, 0.0f));
     //}
@@ -804,12 +810,12 @@ Mesh* Game::processMesh(aiMesh* mesh, const aiScene* scene, MeshSettings setting
             reflectivity = 0.0f;
         }
 
-        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, settings);
+        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, settings, true);
         hasDiffuse = diffuseMaps.size() > 0;
         if(hasDiffuse) {
             diffuseMap = diffuseMaps[0];
         }
-        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, settings);
+        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, settings, true); //change last argument to false in case of problems with gamma
         hasSpecular = specularMaps.size() > 0;
         if(hasSpecular) {
             specularMap = specularMaps[0];
@@ -832,7 +838,7 @@ Mesh* Game::processMesh(aiMesh* mesh, const aiScene* scene, MeshSettings setting
 
 }
 
-std::vector<Texture> Game::loadMaterialTextures(aiMaterial * mat, aiTextureType type, MeshSettings settings) {
+std::vector<Texture> Game::loadMaterialTextures(aiMaterial * mat, aiTextureType type, MeshSettings settings, bool srgb) {
     std::vector<Texture> textures;
     for(int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString tex_path;
@@ -846,7 +852,7 @@ std::vector<Texture> Game::loadMaterialTextures(aiMaterial * mat, aiTextureType 
             }
         }
         if(!skip) {
-            Texture newTexture(settings.directory + "/" + std::string(tex_path.C_Str()), settings.edg);
+            Texture newTexture(settings.directory + "/" + std::string(tex_path.C_Str()), srgb, settings.edg);
             textures.push_back(newTexture);
             loaded_textures.push_back(newTexture);
         }

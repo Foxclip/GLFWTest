@@ -1,7 +1,7 @@
 #include "sobject.h"
 #include "glm/gtx/matrix_decompose.hpp"
 
-unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation) {
+unsigned int loadTexture(std::string filename, bool srgb, GLenum edge, GLenum interpolation) {
     int width, height, nrChannels;
     //stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
@@ -13,7 +13,13 @@ unsigned int loadTexture(std::string filename, GLenum edge, GLenum interpolation
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolation);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolation);
     if(data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        GLenum srgbMode;
+        if(srgb) {
+            srgbMode = GL_SRGB_ALPHA;
+        } else {
+            srgbMode = GL_RGBA;
+        }
+        glTexImage2D(GL_TEXTURE_2D, 0, srgbMode, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         std::cout << "Failed to load texture " << filename << "\n";
@@ -132,9 +138,9 @@ void Mesh::setTextures(Shader *pShader) {
     glBindTexture(GL_TEXTURE_2D, material.specularTexture.getId());
 }
 
-Texture::Texture(std::string filename, GLenum edge) {
+Texture::Texture(std::string filename, bool srgb, GLenum edge) {
     this->path = filename;
-    id = loadTexture(filename, edge);
+    id = loadTexture(filename, srgb, edge);
 }
 
 unsigned int Texture::getId() {

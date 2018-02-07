@@ -105,7 +105,7 @@ private:
     Mesh* findFirstMesh(aiNode* node, const aiScene* scene, MeshSettings settings);
     SObject* processNode(aiNode* node, const aiScene* scene, SObject *parent, MeshSettings settings);
     Mesh* processMesh(aiMesh* mesh, const aiScene* scene, MeshSettings settings);
-    std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, MeshSettings settings);
+    std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, MeshSettings settings, bool srgb);
     void addDirectionalLight(Shader *shader, float intensity, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient);
     void addPointLight(Shader *shader, float intensity, glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::vec3 ambient);
     void addSpotLight(Shader *shader, float intensity, glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, glm::vec3 ambient, float cutOff, float outerCutOff);

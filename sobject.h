@@ -14,12 +14,12 @@ struct Vertex {
     glm::vec2 TexCoords;
 };
 
-unsigned int loadTexture(std::string filename, GLenum edge = GL_REPEAT, GLenum interpolation = GL_LINEAR);
+unsigned int loadTexture(std::string filename, bool srgb, GLenum edge = GL_REPEAT, GLenum interpolation = GL_LINEAR);
 
 class Texture {
 public:
     Texture() {}
-    Texture(std::string filename, GLenum edge = GL_REPEAT);
+    Texture(std::string filename, bool srgb, GLenum edge = GL_REPEAT);
     std::string path;
     unsigned int getId();
 
