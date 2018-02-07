@@ -88,9 +88,9 @@ vec3 calcDirLightDiffuse(DirLight light, vec3 normal) {
 vec3 calcDirLightSpecular(DirLight light, vec3 normal) {
 
 	vec3 lightDir = normalize(-light.direction);
-	vec3 reflectDir = reflect(-lightDir, normal);
 	vec3 viewDir = normalize(-fs_in.FragPos);
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+	vec3 halfwayDir = normalize(lightDir + viewDir);
+	float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
 	vec3 matSpec;
 	if(material.hasSpecular) {
 		matSpec = vec3(texture(material.specular, fs_in.TexCoords));
@@ -130,9 +130,9 @@ vec3 calcPointLightSpecular(PointLight light, vec3 normal) {
 	float attenuation = light.intensity / (light.constant + light.linear * distance + light.quadratic * distance * distance);
 
 	vec3 lightDir = normalize(light.position - fs_in.FragPos);
-	vec3 reflectDir = reflect(-lightDir, normal);
 	vec3 viewDir = normalize(-fs_in.FragPos);
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+	vec3 halfwayDir = normalize(lightDir + viewDir);
+	float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
 	vec3 matSpec;
 	if(material.hasSpecular) {
 		matSpec = vec3(texture(material.specular, fs_in.TexCoords));
@@ -193,9 +193,9 @@ vec3 calcSpotLightSpecular(SpotLight light, vec3 normal) {
 
 	if(theta > light.outerCutOff) {
 
-		vec3 reflectDir = reflect(-lightDir, normal);
 		vec3 viewDir = normalize(-fs_in.FragPos);
-		float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+		vec3 halfwayDir = normalize(lightDir + viewDir);
+		float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
 		vec3 matSpec;
 		if(material.hasSpecular) {
 			matSpec = vec3(texture(material.specular, fs_in.TexCoords));
@@ -206,6 +206,10 @@ vec3 calcSpotLightSpecular(SpotLight light, vec3 normal) {
 
 		vec3 multiplier = light.color * light.intensity * attenuation;
 		return specular * intensity * multiplier;
+
+	} else {
+
+		return vec3(0.0, 0.0, 0.0);
 
 	}
 }

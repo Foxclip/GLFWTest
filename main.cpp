@@ -40,36 +40,43 @@ int main() {
 
 
 
-    //game->loadFile("models/digits/digits.dae", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-    //game->loadFile("models/nanosuit/nanosuit.obj", glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 
-    //game->loadFile("models/windowcube/windowcube.obj", glm::vec3(-3.0f, 1.001f, -3.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
+    game->addDirectionalLight(1.0f, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(1.0f));
+    game->addDirectionalLight(0.5f, glm::vec3(1.0f, 0.5f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
 
-    //game->loadFile("models/sphere2/sphere2.dae", glm::vec3(3.0f, 1.2f, 2.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-    //game->loadFile("models/mirrorcube/mirrorcube.dae", glm::vec3(0.0f, 1.001f, 3.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+    game->addPointLight(5.0f, glm::vec3(1.0f, 0.5f, 0.5f), glm::vec3(-3.0f, 3.0f, 3.0f), 0.0f, 0.0f, 1.0f, glm::vec3(0.0f));   //red
+    game->addPointLight(5.0f, glm::vec3(1.0f, 1.0f, 0.2f), glm::vec3(-6.0f, 1.0f, -10.0f), 0.0f, 0.0f, 1.0f, glm::vec3(0.0f)); //yellow
 
-    //game->loadFile("models/plane/plane.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(4.0f));
-    //game->loadFile("models/cube/cube.obj", glm::vec3(0.0f, 1.001f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
-    //game->loadFile("models/grass/grass.obj", glm::vec3(3.0f, 4.0f, 0.0f), glm::vec3(0.0f), glm::vec3(4.0f), true, GL_CLAMP_TO_EDGE);
+    game->loadFile("models/digits/digits.dae", glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+    game->loadFile("models/nanosuit/nanosuit.obj", glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 
-    //game->loadFile("models/window/window.obj", glm::vec3(-3.0f, 1.0f, 3.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
-    //game->loadFile("models/window/window.obj", glm::vec3(-3.0f, 1.0f, 2.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
-    //game->loadFile("models/window/window.obj", glm::vec3(-3.0f, 1.0f, 1.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
+    game->loadFile("models/windowcube/windowcube.obj", glm::vec3(-3.0f, 1.001f, -3.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
+
+    game->loadFile("models/sphere2/sphere2.dae", glm::vec3(3.0f, 1.2f, 2.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+    game->loadFile("models/mirrorcube/mirrorcube.dae", glm::vec3(0.0f, 1.001f, 3.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+
+    game->loadFile("models/plane/plane.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), glm::vec3(4.0f));
+    game->loadFile("models/cube/cube.obj", glm::vec3(0.0f, 1.001f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+    game->loadFile("models/grass/grass.obj", glm::vec3(3.0f, 4.0f, 0.0f), glm::vec3(0.0f), glm::vec3(4.0f), true, GL_CLAMP_TO_EDGE);
+
+    game->loadFile("models/window/window.obj", glm::vec3(-3.0f, 1.0f, 3.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
+    game->loadFile("models/window/window.obj", glm::vec3(-3.0f, 1.0f, 2.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
+    game->loadFile("models/window/window.obj", glm::vec3(-3.0f, 1.0f, 1.0f), glm::vec3(0.0f), glm::vec3(1.0f), true);
+
+    game->setCubeMap("skybox");
+    game->enableCubeMap();
 
 
 
     //game->addDirectionalLight(2.0f, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f));
     //game->loadFile("models/earth/earth.dae", glm::vec3(0.0f), glm::vec3(0.0f, -90.0f, 0.0f), glm::vec3(1.0f));
     //game->addParticleField("models/wcube/wcube.dae", 1000000, glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+    //game->setBgColor(0.0f, 0.0f, 0.0f);
 
 
-    game->loadFile("models/prkt/prkt.dae", glm::vec3(0.0f), glm::vec3(0.0f, -90.0f, 0.0f), glm::vec3(1.0));
-    game->addPointLight(3.0f, glm::vec3(1.0), glm::vec3(0.0f, 2.0f, 0.0f), 0.0f, 0.0f, 1.0f, glm::vec3(0.2f));
-
-
-    //game->setCubeMap("skybox");
-    game->setBgColor(0.1f, 0.1f, 0.1f);
-    //game->enableCubeMap();
+    //game->loadFile("models/prkt/prkt.dae", glm::vec3(0.0f), glm::vec3(0.0f, -90.0f, 0.0f), glm::vec3(1.0));
+    //game->addPointLight(3.0f, glm::vec3(1.0), glm::vec3(0.0f, 2.0f, 0.0f), 0.0f, 0.0f, 1.0f, glm::vec3(0.2f));
+    //game->setBgColor(0.1f, 0.1f, 0.1f);
 
     game->start();
 
