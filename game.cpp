@@ -118,6 +118,8 @@ void Game::initGLFW() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
     
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* vidmode = glfwGetVideoMode(monitor);
@@ -153,6 +155,7 @@ void Game::initGLFW() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_PROGRAM_POINT_SIZE);
+    glEnable(GL_MULTISAMPLE);
 
     initFrameBuffer();
 
@@ -223,33 +226,60 @@ void Game::initGLFW() {
 void Game::initFrameBuffer() {
 
     //setting up framebuffers
-    glGenFramebuffers(1, &screenFrameBuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
+
+    //multisample framebuffer
+
+    glGenFramebuffers(1, &screenFrameBufferMultisample);
+    glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBufferMultisample);
 
     //setting up color buffer
-    glGenTextures(1, &screenColorBuffer);
+    glGenTextures(1, &screenColorBufferMultisample);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, screenColorBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenColorBuffer, 0);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, screenColorBufferMultisample);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, screenWidth, screenHeight, GL_TRUE);
+    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, screenColorBufferMultisample, 0);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
     //setting up render buffer
     unsigned int rbo;
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
     //if some error occured
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << "Framebuffer is not complete\n";
+        std::cout << "Multisample framebuffer is not complete\n";
         exit(-1);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    //intermediate framebuffer
+
+    glGenFramebuffers(1, &screenFrameBufferIntermediate);
+    glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBufferIntermediate);
+
+    //setting up color buffer
+    glGenTextures(1, &screenColorBufferIntermediate);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, screenColorBufferIntermediate);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenColorBufferIntermediate, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    //if some error occured
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Intermediate framebuffer is not complete\n";
+        exit(-1);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    screenShader.setInt("screenTexture", 0);
 
     //setting up screen quad
 
@@ -378,8 +408,8 @@ void Game::initShaders() {
 }
 
 void Game::processPhysics() {
-    objects[0]->rotate(glm::vec3(0.0f, 0.0f, 1.0f));
-    opaqueParticleFields[0]->rotate(glm::vec3(-0.1f, 0.0f, 0.0f));
+    //objects[0]->rotate(glm::vec3(0.0f, 0.0f, 1.0f));
+    //opaqueParticleFields[0]->rotate(glm::vec3(-0.1f, 0.0f, 0.0f));
     //if(objects[0]->getChildren().size() > 5) {
     //    objects[0]->getChildren()[5]->rotate(glm::vec3(-1.0f, 0.0f, 0.0f));
     //}
@@ -451,7 +481,7 @@ void Game::render() {
     }
 
     //initializing
-    glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, screenFrameBufferMultisample);
     glClearColor(bgColorR, bgColorG, bgColorB, 1.0f);
     glStencilMask(0xFF);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -518,6 +548,9 @@ void Game::render() {
     }
 
     //render screen quad
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, screenFrameBufferMultisample);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, screenFrameBufferIntermediate);
+    glBlitFramebuffer(0, 0, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -525,7 +558,7 @@ void Game::render() {
     glBindVertexArray(screenVAO);
     glDisable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, screenColorBuffer);
+    glBindTexture(GL_TEXTURE_2D, screenColorBufferIntermediate);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
     //final actions

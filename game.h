@@ -56,8 +56,10 @@ private:
     //Camera camera = Camera(glm::vec3(-3.0f, 1.0f, 6.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     Camera camera = Camera(glm::vec3(0.0f, 0.0f, 4.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    unsigned int screenFrameBuffer;
-    unsigned int screenColorBuffer;
+    unsigned int screenFrameBufferMultisample;
+    unsigned int screenFrameBufferIntermediate;
+    unsigned int screenColorBufferMultisample;
+    unsigned int screenColorBufferIntermediate;
     unsigned int screenVAO;
     unsigned int screenVBO;
     Shader screenShader;
