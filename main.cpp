@@ -58,13 +58,17 @@ int main() {
 
 
 
-    game->addDirectionalLight(2.0f, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f));
-    game->loadFile("models/earth/earth.dae", glm::vec3(0.0f), glm::vec3(0.0f, -90.0f, 0.0f), glm::vec3(1.0f));
-    game->addParticleField("models/wcube/wcube.dae", 1000000, glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+    //game->addDirectionalLight(2.0f, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f));
+    //game->loadFile("models/earth/earth.dae", glm::vec3(0.0f), glm::vec3(0.0f, -90.0f, 0.0f), glm::vec3(1.0f));
+    //game->addParticleField("models/wcube/wcube.dae", 1000000, glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+
+
+    game->loadFile("models/prkt/prkt.dae", glm::vec3(0.0f), glm::vec3(0.0f, -90.0f, 0.0f), glm::vec3(1.0));
+    game->addPointLight(3.0f, glm::vec3(1.0), glm::vec3(0.0f, 2.0f, 0.0f), 0.0f, 0.0f, 1.0f, glm::vec3(0.2f));
 
 
     //game->setCubeMap("skybox");
-    game->setBgColor(0.0f, 0.0f, 0.0f);
+    game->setBgColor(0.1f, 0.1f, 0.1f);
     //game->enableCubeMap();
 
     game->start();
