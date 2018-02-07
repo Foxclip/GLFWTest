@@ -60,7 +60,7 @@ int main() {
 
     game->addDirectionalLight(2.0f, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f));
     game->loadFile("models/earth/earth.dae", glm::vec3(0.0f), glm::vec3(0.0f, -90.0f, 0.0f), glm::vec3(1.0f));
-    game->addParticleField("models/wcube/wcube.dae", 1000, glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+    game->addParticleField("models/wcube/wcube.dae", 1000000, glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 
 
     //game->setCubeMap("skybox");

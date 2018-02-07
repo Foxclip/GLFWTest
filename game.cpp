@@ -398,6 +398,8 @@ void Game::renderModel(Mesh *mesh, glm::mat4 viewMatrix, Shader *overrideShader)
     }
     shader->use();
 
+    shader->setBool("isInstance", false);
+
     glm::mat4 modelMatrix = mesh->getGlobalTransform();
     shader->setMat4("model", modelMatrix);
 
@@ -427,17 +429,13 @@ void Game::renderParticleField(ParticleField *field, glm::mat4 viewMatrix, Shade
     shader->use();
 
     field->getMesh()->setTextures(shader);
+    shader->setBool("isInstance", true);
+    glm::mat4 parentMatrix = field->getGlobalTransform();
+    shader->setMat4("parentMatrix", parentMatrix);
 
     //drawing instances
     glBindVertexArray(field->getMesh()->getVAO());
-    for(glm::mat4 modelMatrix: field->getModelMatrices()) {
-        glm::mat4 newModelMatrix = field->getGlobalTransform() * modelMatrix;
-        shader->setMat4("model", newModelMatrix);
-        glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(viewMatrix * newModelMatrix)));
-        shader->setMat3("newNormal", normalMatrix);
-        shader->use();
-        glDrawElements(GL_TRIANGLES, field->getMesh()->getIndexCount(), GL_UNSIGNED_INT, 0);
-    }
+    glDrawElementsInstanced(GL_TRIANGLES, field->getMesh()->getIndexCount(), GL_UNSIGNED_INT, 0, field->getCount());
     glBindVertexArray(0);
 
 }

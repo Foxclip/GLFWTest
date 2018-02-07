@@ -211,6 +211,7 @@ ParticleField::ParticleField(Mesh *mesh, int count) {
     this->mesh = mesh;
     this->count = count;
     updateModelMatrices();
+    setData();
 }
 
 Mesh* ParticleField::getMesh() {
@@ -253,4 +254,39 @@ void ParticleField::updateModelMatrices() {
         modelMatrices[i] = model;
 
     }
+}
+
+int ParticleField::getCount() {
+    return count;
+}
+
+unsigned int ParticleField::getModelMatricesVBO() {
+    return modelMatricesVBO;
+}
+
+void ParticleField::setData() {
+
+    unsigned int VAO = mesh->getVAO();
+    glBindVertexArray(VAO);
+
+    glGenBuffers(1, &modelMatricesVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, modelMatricesVBO);
+    glBufferData(GL_ARRAY_BUFFER, count * sizeof(glm::mat4), modelMatrices.data(), GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+    glEnableVertexAttribArray(6);
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+    glVertexAttribDivisor(3, 1);
+    glVertexAttribDivisor(4, 1);
+    glVertexAttribDivisor(5, 1);
+    glVertexAttribDivisor(6, 1);
+
+    glBindVertexArray(0);
+
 }

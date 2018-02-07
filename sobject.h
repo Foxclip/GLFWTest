@@ -125,11 +125,15 @@ public:
     ParticleField(Mesh *mesh, int count);
     Mesh* getMesh();
     std::vector<glm::mat4>& getModelMatrices();
-    void updateModelMatrices();
+    int getCount();
+    unsigned int getModelMatricesVBO();
 
 private:
     std::vector<glm::mat4> modelMatrices;
     Mesh *mesh;
     int count;
+    unsigned int modelMatricesVBO;
+    void updateModelMatrices();
+    void setData();
 
 };
